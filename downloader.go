@@ -31,7 +31,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Downloader app's Working dir is : %s\n", wd)
+	fmt.Printf("Working dir is : %s\n", wd)
 
 	// 解析页面获取下载链接URL、文件名和SHA1SUM
 	downloadLink, filename, webSHA1SUM := parseDownloadInfo("https://db-ip.com/db/download/ip-to-city-lite")
@@ -39,7 +39,6 @@ func main() {
 	fmt.Printf("Download Link: %s\n", downloadLink)
 	fmt.Printf("Filename: %s\n", filename)
 	fmt.Printf("SHA1SUM: %s\n", webSHA1SUM)
-
 
 	// 初始化 Chrome 选项
 	opts := []chromedp.ExecAllocatorOption{
@@ -73,23 +72,22 @@ func main() {
 	// 设置下载完成的通知通道
 	done := make(chan string, 1)
 	chromedp.ListenTarget(ctx, func(v interface{}) {
-	    if ev, ok := v.(*browser.EventDownloadProgress); ok {
-	        if ev.State == browser.DownloadProgressStateCompleted {
-	            done <- ev.GUID
-	            close(done)
-	        } else if ev.TotalBytes > 0 {
-	            // 计算并打印下载进度
-	            progress := float64(ev.ReceivedBytes) / float64(ev.TotalBytes) * 100
-	            fmt.Printf("下载进度：%.2f%%\n", progress)
-	        }
-	    }
+		if ev, ok := v.(*browser.EventDownloadProgress); ok {
+			if ev.State == browser.DownloadProgressStateCompleted {
+				done <- ev.GUID
+				close(done)
+			} else if ev.TotalBytes > 0 {
+				// 计算并打印下载进度
+				progress := float64(ev.ReceivedBytes) / float64(ev.TotalBytes) * 100
+				fmt.Printf("下载进度：%.2f%%\n", progress)
+			}
+		}
 	})
-
 
 	// 使用chromedp模拟浏览器行为，会受到context.WithTimeout()的影响
 	if err := chromedp.Run(ctx,
 		// 设置下载行为
-		browser.SetDownloadBehavior(browser.SetDownloadBehaviorBehaviorAllowAndName).
+		browser.SetDownloadBehavior(browser.SetDownloadBehaviorBehaviorAllow).
 			WithDownloadPath(wd).
 			WithEventsEnabled(true),
 		chromedp.Navigate(`https://db-ip.com/db/download/ip-to-city-lite`),
@@ -113,25 +111,33 @@ func main() {
 	}
 
 	// 等待下载完成
-	guid := <-done
+	<-done
 	//log.Printf("下载完成，文件路径：%s", filepath.Join(wd, guid))
-	fmt.Printf("chromedp run completed, download dir is: %s", filepath.Join(wd, guid))
+	fmt.Printf("chromedp run completed, Full dir is: %s", filepath.Join(wd, filename))
 
 	// 完整的文件路径
-	fullFilePath := filepath.Join(wd, guid)
+	fullFilePath := filepath.Join(wd, filename)
 	//fmt.Printf("Full file path: %s\n", fullFilePath)
-	
+
+	// 检查文件是否存在
+	if _, err := os.Stat(fullFilePath); os.IsNotExist(err) {
+		log.Fatalf("Downloaded file doesn't be found unexpectly: %s", fullFilePath)
+	}
+	fmt.Printf("Downloaded file found: %s\n", fullFilePath)
+
 	// 解压.gz文件
 	err = decompressGzipFile(fullFilePath, strings.TrimSuffix(fullFilePath, ".gz"))
 	if err != nil {
 		log.Fatalf("Failed to decompress file: %v", err)
 	}
+	fmt.Println("Decomprssed file successfully")
 
 	// 校验SHA1SUM
 	decompressedFilePath := strings.TrimSuffix(fullFilePath, ".gz")
 	if !verifySHA1(decompressedFilePath, webSHA1SUM) {
 		log.Fatalf("SHA1SUM verification failed")
 	}
+	fmt.Println("SHA1SUM matched")
 
 	// 变更解压后的文件名
 	re := regexp.MustCompile(`-\d{4}-\d{2}`)
