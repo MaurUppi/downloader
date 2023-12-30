@@ -31,7 +31,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("Working dir is : %s\n", wd)
+	fmt.Printf("Downloader app's Working dir is : %s\n", wd)
 
 	// 解析页面获取下载链接URL、文件名和SHA1SUM
 	downloadLink, filename, webSHA1SUM := parseDownloadInfo("https://db-ip.com/db/download/ip-to-city-lite")
@@ -73,12 +73,16 @@ func main() {
 	// 设置下载完成的通知通道
 	done := make(chan string, 1)
 	chromedp.ListenTarget(ctx, func(v interface{}) {
-		if ev, ok := v.(*browser.EventDownloadProgress); ok {
-			if ev.State == browser.DownloadProgressStateCompleted {
-				done <- ev.GUID
-				close(done)
-			}
-		}
+	    if ev, ok := v.(*browser.EventDownloadProgress); ok {
+	        if ev.State == browser.DownloadProgressStateCompleted {
+	            done <- ev.GUID
+	            close(done)
+	        } else if ev.TotalBytes > 0 {
+	            // 计算并打印下载进度
+	            progress := float64(ev.ReceivedBytes) / float64(ev.TotalBytes) * 100
+	            fmt.Printf("下载进度：%.2f%%\n", progress)
+	        }
+	    }
 	})
 
 
@@ -111,7 +115,7 @@ func main() {
 	// 等待下载完成
 	guid := <-done
 	//log.Printf("下载完成，文件路径：%s", filepath.Join(wd, guid))
-	fmt.Printf("chromedp run completed, dir is: %s", filepath.Join(wd, guid))
+	fmt.Printf("chromedp run completed, download dir is: %s", filepath.Join(wd, guid))
 
 	// 完整的文件路径
 	fullFilePath := filepath.Join(wd, guid)
