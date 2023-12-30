@@ -21,32 +21,38 @@ import (
 
 func main() {
 	// Edge的可执行文件路径
-	//browserPath := os.Getenv("CHROME_PATH")
-	//fmt.Println("Starting chromedp")
-	browserPath := os.Getenv("CHROME_PATH")
+	//browserPath := `C:\Program Files\Google\Chrome\Application\chrome.exe`
+	// 使用 Action browser-actions/setup-chrome指定chrome版本以及 Outputs 变量
+	browserPath := os.Getenv("CHROME_PATH") // 由 Github Action "Set Chrome Path" 步骤赋值
 	fmt.Printf("Chrome path is : %s\n", browserPath)
-	browserVersion := os.Getenv("CHROME_VERSION")
-	fmt.Printf("Chrome version is:  %s\n ", browserVersion)
 
-	// 获取当前工作目录
+	// 获取当前工作目录，并在此基础上创建tmp目录保存下载文件
 	wd, err := os.Getwd()
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Printf("Working dir is : %s\n", wd)
 
+	// 解析页面获取下载链接URL、文件名和SHA1SUM
+	downloadLink, filename, webSHA1SUM := parseDownloadInfo("https://db-ip.com/db/download/ip-to-city-lite")
+	// 在 Console 显示信息
+	fmt.Printf("Download Link: %s\n", downloadLink)
+	fmt.Printf("Filename: %s\n", filename)
+	fmt.Printf("SHA1SUM: %s\n", webSHA1SUM)
+
+
 	// 初始化 Chrome 选项
 	opts := []chromedp.ExecAllocatorOption{
 		chromedp.NoDefaultBrowserCheck,   // 防止检查 Chrome 是否为默认浏览器
-		chromedp.Flag("headless", true), // 无头模式
+		chromedp.Flag("headless", false), // 排除无头模式
 		chromedp.ExecPath(browserPath),   // 设置 Chrome 的执行路径
 		chromedp.UserDataDir(""),         // 使用临时用户配置文件，即ignoring any existing user profiles
 		// 设置下载选项
-		//chromedp.Flag("download.default_directory", downloadDir),
+		chromedp.Flag("download.default_directory", wd),
 		chromedp.Flag("download.prompt_for_download", false),
 		chromedp.Flag("disable-gpu", true),
 		chromedp.Flag("download.directory_upgrade", true),
-		//chromedp.Flag("safebrowsing.enabled", true),
+		chromedp.Flag("safebrowsing.enabled", true),
 		chromedp.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"),
 	}
 
@@ -64,16 +70,17 @@ func main() {
 	defer cancel()
 	fmt.Println("Starting chromedp run")
 
-	// 解析页面获取下载链接URL、文件名和SHA1SUM
-	downloadLink, filename, webSHA1SUM := parseDownloadInfo("https://db-ip.com/db/download/ip-to-city-lite")
-	// 在 Console 显示信息
-	fmt.Printf("Download Link: %s\n", downloadLink)
-	fmt.Printf("Filename: %s\n", filename)
-	fmt.Printf("SHA1SUM: %s\n", webSHA1SUM)
+	// 设置下载完成的通知通道
+	done := make(chan string, 1)
+	chromedp.ListenTarget(ctx, func(v interface{}) {
+		if ev, ok := v.(*browser.EventDownloadProgress); ok {
+			if ev.State == browser.DownloadProgressStateCompleted {
+				done <- ev.GUID
+				close(done)
+			}
+		}
+	})
 
-	// 完整的文件路径
-	fullFilePath := filepath.Join(wd, filename)
-	fmt.Printf("Full file path: %s\n", fullFilePath)
 
 	// 使用chromedp模拟浏览器行为，会受到context.WithTimeout()的影响
 	if err := chromedp.Run(ctx,
@@ -100,8 +107,16 @@ func main() {
 		fmt.Printf("Failed to complete chromedp run: %v\n", err)
 		//log.Fatalf("Failed to complete chromedp run: %v", err)
 	}
-	fmt.Println("chromedp run completed")
 
+	// 等待下载完成
+	guid := <-done
+	//log.Printf("下载完成，文件路径：%s", filepath.Join(wd, guid))
+	fmt.Printf("chromedp run completed, dir is: %s", filepath.Join(wd, guid))
+
+	// 完整的文件路径
+	fullFilePath := filepath.Join(wd, guid)
+	//fmt.Printf("Full file path: %s\n", fullFilePath)
+	
 	// 解压.gz文件
 	err = decompressGzipFile(fullFilePath, strings.TrimSuffix(fullFilePath, ".gz"))
 	if err != nil {
