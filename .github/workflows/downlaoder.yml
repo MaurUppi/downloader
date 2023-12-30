@@ -1,0 +1,28 @@
+jobs:
+  build:
+    name: Downloader
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      
+      - name: Set up Go
+        uses: WillAbides/setup-go-faster@v1.9.1
+        with:
+          go-version-file: ./go.mod
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@latest
+        with:
+          chrome-version: '114'
+
+      - name: Build and Run downloader.go
+        run: |
+          go run downloader.go
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: downloaded-files
+          path: |
+            /*.mmdb
+            /*.log
