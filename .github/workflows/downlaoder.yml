@@ -21,14 +21,8 @@ jobs:
         uses: browser-actions/setup-chrome@latest
         with:
           chrome-version: '114'
-          
-      - name: Use Chrome Path and Version
         run: |
-          echo "Chrome path is ${{ steps.setup-chrome.outputs.chrome-path }}"
-          echo "Chrome version is ${{ steps.setup-chrome.outputs.chrome-version }}"
-        env:
-          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
-          CHROME_VERSION: ${{ steps.setup-chrome.outputs.chrome-version }}
+          ${{ steps.setup-chrome.outputs.chrome-path }} --version
           
       - name: Build and Run downloader.go
         run: |
