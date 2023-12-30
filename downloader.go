@@ -44,7 +44,7 @@ func main() {
 	// 初始化 Chrome 选项
 	opts := []chromedp.ExecAllocatorOption{
 		chromedp.NoDefaultBrowserCheck,   // 防止检查 Chrome 是否为默认浏览器
-		chromedp.Flag("headless", false), // 排除无头模式
+		chromedp.Flag("headless", true), // 排除无头模式
 		chromedp.ExecPath(browserPath),   // 设置 Chrome 的执行路径
 		chromedp.UserDataDir(""),         // 使用临时用户配置文件，即ignoring any existing user profiles
 		// 设置下载选项
