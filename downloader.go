@@ -21,8 +21,12 @@ import (
 
 func main() {
 	// Edge的可执行文件路径
+	//browserPath := os.Getenv("CHROME_PATH")
+	//fmt.Println("Starting chromedp")
 	browserPath := os.Getenv("CHROME_PATH")
-	fmt.Println("Starting chromedp")
+	fmt.Printf("Chrome path is : %s\n", browserPath)
+	browserVersion := os.Getenv("CHROME_VERSION")
+	fmt.Printf("Chrome version is:  %s\n ", browserVersion)
 
 	// 获取当前工作目录
 	wd, err := os.Getwd()
