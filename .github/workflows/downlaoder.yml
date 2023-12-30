@@ -26,14 +26,62 @@ jobs:
       - name: Check Chrome Version
         run: echo "CHROME_PATH=${{ steps.setup-chrome.outputs.chrome-path }}" >> $GITHUB_ENV
 
+      - name: Set variables
+        run: |
+          echo "TAG_NAME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
+          echo "RELEASE_NAME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
+        shell: bash
+
       - name: Build and Run downloader.go
         run: |
           go run downloader.go
 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+#      - name: Upload Artifact
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: downloaded-files
+#          path: |
+#            ./*.mmdb
+#            ./*.log
+
+      - name: Move files to publish directory
+        run: |
+          mkdir -p publish
+          mv ./*.mmdb ./*.log ./publish/
+
+      - name: Generate sha256 checksum for mmdb files
+        run: |
+          cd ./publish || exit 1
+          for name in $(ls *.mmdb); do
+            sha256sum ${name} > ./${name}.sha256sum
+          done
+
+      - name: Git push assets to "release" branch
+        run: |
+          cd publish || exit 1
+          git init
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
+          git checkout -b release
+          git add -A
+          git commit -m "${{ env.RELEASE_NAME }}"
+          git remote add geoip "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+          git push -f -u geoip release
+
+      - name: Purge jsdelivr CDN
+        run: |
+          cd publish || exit 1
+          for file in $(ls); do
+            curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@release/${file}"
+          done
+
+      - name: Remove some files to avoid publishing to GitHub release
+        run: rm -rf ./publish/*.{gz,zip}
+
+      - name: Upload files to GitHub release
+        uses: svenstaro/upload-release-action@v2
         with:
-          name: downloaded-files
-          path: |
-            ./*.mmdb
-            ./*.log
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: true
+          file: ./publish/*
+          tag: ${{ env.TAG_NAME }}
