@@ -21,7 +21,7 @@ import (
 
 func main() {
 	// Edge的可执行文件路径
-	browserPath := `C:\Program Files\Google\Chrome\Application\chrome.exe`
+	browserPath := os.Getenv("CHROME_PATH")
 	fmt.Println("Starting chromedp")
 
 	// 获取当前工作目录
@@ -34,15 +34,15 @@ func main() {
 	// 初始化 Chrome 选项
 	opts := []chromedp.ExecAllocatorOption{
 		chromedp.NoDefaultBrowserCheck,   // 防止检查 Chrome 是否为默认浏览器
-		chromedp.Flag("headless", false), // 排除无头模式
+		chromedp.Flag("headless", true), // 无头模式
 		chromedp.ExecPath(browserPath),   // 设置 Chrome 的执行路径
 		chromedp.UserDataDir(""),         // 使用临时用户配置文件，即ignoring any existing user profiles
 		// 设置下载选项
 		//chromedp.Flag("download.default_directory", downloadDir),
 		chromedp.Flag("download.prompt_for_download", false),
-		//chromedp.Flag("disable-gpu", true),
+		chromedp.Flag("disable-gpu", true),
 		chromedp.Flag("download.directory_upgrade", true),
-		chromedp.Flag("safebrowsing.enabled", true),
+		//chromedp.Flag("safebrowsing.enabled", true),
 		chromedp.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"),
 	}
 
