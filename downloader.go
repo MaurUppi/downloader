@@ -138,16 +138,16 @@ func main() {
 		for _, file := range downloadedFileNames {
 			if strings.HasSuffix(file, ".mmdb") || strings.HasSuffix(file, ".csv") {
 				wg.Add(1)
-				go func(f string) {
+				go func(f string, lf *os.File) {
 					defer wg.Done()
 					// 提取文件类型
-					fileType := filepath.Ext(f) + ".gz" // 例如 ".mmdb.gz" 或 ".csv.gz"
-					expectedSHA1 := sha1Info[fileType]
+					fileType := filepath.Ext(f) + ".gz" // 从文件名中提取扩展名（.mmdb 或 .csv），然后添加 .gz 后缀，以匹配 sha1Info 字典中的键
+					expectedSHA1 := sha1Info[fileType]  // 确保 sha1Info 字典中的 SHA1SUM 值是针对解压后的文件，而不是 .gz 文件本身
 					fmt.Printf("Attempting to process file: %s\n", f)
-					if err := processAndVerifyFile(f, expectedSHA1, outputDir); err != nil {
+					if err := processAndVerifyFile(f, expectedSHA1, outputDir, lf); err != nil {
 						fmt.Printf("Error processing file %s: %v\n", f, err)
 					}
-				}(file)
+				}(file, logFile)
 			}
 		}
 		wg.Wait()
@@ -244,7 +244,7 @@ func parseDownloadInfo(url string) (map[string]string, map[string]string) {
 }
 
 // processAndVerifyFile 解压 .gz 文件并验证解压后文件的 SHA1SUM
-func processAndVerifyFile(gzipFilePath, expectedSHA1, outputDir string) error {
+func processAndVerifyFile(gzipFilePath, expectedSHA1, outputDir string, logFile *os.File) error {
 	fmt.Printf("Processing file: %s\n", gzipFilePath)
 	// 构造解压后的文件路径
 	outputPath := filepath.Join(outputDir, strings.TrimSuffix(filepath.Base(gzipFilePath), ".gz"))
@@ -257,6 +257,11 @@ func processAndVerifyFile(gzipFilePath, expectedSHA1, outputDir string) error {
 	// 对解压后的文件执行 SHA1SUM 校验
 	if verified := verifySHA1(outputPath, expectedSHA1); !verified {
 		return fmt.Errorf("SHA1SUM mismatch for file: %s", outputPath)
+	}
+	// 校验通过，写入日志文件
+	_, err := fmt.Fprintf(logFile, "SHA1SUM verified successfully for file: %s\n", gzipFilePath)
+	if err != nil {
+		return fmt.Errorf("error writing to log file: %v", err)
 	}
 
 	fmt.Printf("SHA1SUM verified successfully for file: %s\n", gzipFilePath)
