@@ -136,25 +136,20 @@ func main() {
 
 		var wg sync.WaitGroup
 		for _, file := range downloadedFileNames {
-			wg.Add(1)
-			go func(f string) {
-				defer wg.Done()
-				// 从文件名提取文件类型
-				var fileType string
-				if strings.HasSuffix(f, ".mmdb.gz") {
-					fileType = ".mmdb.gz"
-				} else if strings.HasSuffix(f, ".csv.gz") {
-					fileType = ".csv.gz"
-				}
-				expectedSHA1 := sha1Info[fileType]
-				if err := processAndVerifyFile(f, expectedSHA1, outputDir); err != nil {
-					// 错误处理
-					fmt.Printf("Error processing file %s: %v\n", f, err)
-				}
-			}(file)
+			if strings.HasSuffix(file, ".mmdb") || strings.HasSuffix(file, ".csv") {
+				wg.Add(1)
+				go func(f string) {
+					defer wg.Done()
+					// 提取文件类型
+					fileType := filepath.Ext(f) + ".gz" // 例如 ".mmdb.gz" 或 ".csv.gz"
+					expectedSHA1 := sha1Info[fileType]
+					if err := processAndVerifyFile(f, expectedSHA1, outputDir); err != nil {
+						fmt.Printf("Error processing file %s: %v\n", f, err)
+					}
+				}(file)
+			}
 		}
 		wg.Wait()
-
 	}
 }
 
@@ -247,23 +242,17 @@ func parseDownloadInfo(url string) (map[string]string, map[string]string) {
 	return fileInfo, sha1Info
 }
 
-// processAndVerifyFile 解压文件并验证 SHA1SUM
+// processAndVerifyFile 解压 .gz 文件并验证解压后文件的 SHA1SUM
 func processAndVerifyFile(gzipFilePath, expectedSHA1, outputDir string) error {
-	// 首先检查文件是否以 .gz 结尾
-	if !strings.HasSuffix(gzipFilePath, ".gz") {
-		return fmt.Errorf("file is not a gzip file: %s", gzipFilePath)
-	}
-
+	// 构造解压后的文件路径
 	outputPath := filepath.Join(outputDir, strings.TrimSuffix(filepath.Base(gzipFilePath), ".gz"))
 
-	// 检查输出文件是否已存在
-	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
-		if err := decompressGzipFile(gzipFilePath, outputPath); err != nil {
-			return fmt.Errorf("failed to decompress file: %v", err)
-		}
+	// 解压 .gz 文件
+	if err := decompressGzipFile(gzipFilePath, outputPath); err != nil {
+		return fmt.Errorf("failed to decompress file: %v", err)
 	}
 
-	// 执行 SHA1SUM 校验
+	// 对解压后的文件执行 SHA1SUM 校验
 	if verified := verifySHA1(outputPath, expectedSHA1); !verified {
 		return fmt.Errorf("SHA1SUM mismatch for file: %s", outputPath)
 	}
