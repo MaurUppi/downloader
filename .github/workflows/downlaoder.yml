@@ -58,10 +58,10 @@ jobs:
           sudo apt-get install git-lfs
           git lfs install
 
-      # 跟踪 .gz 文件
+      # 跟踪特定的 .gz 文件
       - name: Track specific .gz files with Git LFS
         run: |
-          git lfs track "dbip-city-lite*.csv.gz"
+          git lfs track "dbip-city-lite-*.csv.gz"
           git add .gitattributes
 
       - name: Generate sha256 checksum for all files
@@ -80,8 +80,8 @@ jobs:
           git checkout -b release
           git add -A
           git commit -m "${{ env.RELEASE_NAME }}"
-          git remote add geoip "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
-          git push -f -u geoip release
+          git remote add DP-IP "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+          git push -f -u DP-IP release
 
 #      - name: Purge jsdelivr CDN
 #        run: |
