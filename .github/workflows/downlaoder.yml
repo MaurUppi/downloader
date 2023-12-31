@@ -44,18 +44,18 @@ jobs:
 #        with:
 #          name: downloaded-files
 #          path: |
-#            ./*.mmdb
-#            ./*.log
+#            ./output/*.gz
+#            ./output/*.log
 
       - name: Move files to publish directory
         run: |
           mkdir -p publish
-          mv ./*.mmdb ./*.log ./publish/
+          mv ./output/*.gz ./output/*.log ./publish/
 
-      - name: Generate sha256 checksum for mmdb files
+      - name: Generate sha256 checksum for all files
         run: |
           cd ./publish || exit 1
-          for name in $(ls *.mmdb); do
+          for name in $(ls *.gz); do
             sha256sum ${name} > ./${name}.sha256sum
           done
 
@@ -71,15 +71,15 @@ jobs:
           git remote add geoip "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
           git push -f -u geoip release
 
-      - name: Purge jsdelivr CDN
-        run: |
-          cd publish || exit 1
-          for file in $(ls); do
-            curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@release/${file}"
-          done
+#      - name: Purge jsdelivr CDN
+#        run: |
+#          cd publish || exit 1
+#          for file in $(ls); do
+#            curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@release/${file}"
+#          done
 
-      - name: Remove some files to avoid publishing to GitHub release
-        run: rm -rf ./publish/*.{gz,zip}
+#      - name: Remove some files to avoid publishing to GitHub release
+#        run: rm -rf ./publish/*.{gz,zip}
 
       - name: Upload files to GitHub release
         uses: svenstaro/upload-release-action@v2
