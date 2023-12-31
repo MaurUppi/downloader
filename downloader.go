@@ -11,7 +11,6 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
@@ -110,47 +109,18 @@ func main() {
 		totalDownloads := 2 // 每个 URL 预期下载的文件总数
 
 		// 运行下载文件的函数，开始下载文件
-		err := downloadFile(ctx, url, browserPath, outputDir, &downloadCounter, totalDownloads, done)
-		if err != nil {
+		if err := downloadFile(ctx, url, browserPath, outputDir, &downloadCounter, totalDownloads, done); err != nil {
 			log.Fatal(err)
 		}
 
-		// 开始异步处理下载文件的解压与SHA1SUM比较
-
-		// 使用 os.ReadDir 获取 outputDir 目录中的所有文件
-		dirEntries, err := os.ReadDir(outputDir)
-		if err != nil {
-			log.Fatalf("Failed to read output directory: %v", err)
-		}
-
-		// 转换为文件名列表
-		var downloadedFileNames []string
-		for _, entry := range dirEntries {
-			if !entry.IsDir() {
-				// 获取完整的文件路径
-				downloadedFilePath := filepath.Join(outputDir, entry.Name())
-				downloadedFileNames = append(downloadedFileNames, downloadedFilePath)
+		// 处理下载的每个文件
+		for fileType := range fileInfo {
+			downloadedFilePath := filepath.Join(outputDir, filepath.Base(fileInfo[fileType]))
+			if err := processAndVerifyFile(downloadedFilePath, sha1Info[fileType], outputDir, logFile); err != nil {
+				log.Fatalf("Error processing file %s: %v", downloadedFilePath, err)
 			}
 		}
-		fmt.Printf("Downloaded files in output dir: %v\n", downloadedFileNames)
 
-		var wg sync.WaitGroup
-		for _, file := range downloadedFileNames {
-			if strings.HasSuffix(file, ".mmdb") || strings.HasSuffix(file, ".csv") {
-				wg.Add(1)
-				go func(f string, lf *os.File) {
-					defer wg.Done()
-					// 提取文件类型
-					fileType := filepath.Ext(f) + ".gz" // 从文件名中提取扩展名（.mmdb 或 .csv），然后添加 .gz 后缀，以匹配 sha1Info 字典中的键
-					expectedSHA1 := sha1Info[fileType]  // 确保 sha1Info 字典中的 SHA1SUM 值是针对解压后的文件，而不是 .gz 文件本身
-					fmt.Printf("Attempting to process file: %s\n", f)
-					if err := processAndVerifyFile(f, expectedSHA1, outputDir, lf); err != nil {
-						fmt.Printf("Error processing file %s: %v\n", f, err)
-					}
-				}(file, logFile)
-			}
-		}
-		wg.Wait()
 	}
 }
 
@@ -256,11 +226,13 @@ func processAndVerifyFile(gzipFilePath, expectedSHA1, outputDir string, logFile 
 
 	// 对解压后的文件执行 SHA1SUM 校验
 	if verified := verifySHA1(outputPath, expectedSHA1); !verified {
+		fmt.Printf("SHA1SUM mismatch for file: %s\n", outputPath)
 		return fmt.Errorf("SHA1SUM mismatch for file: %s", outputPath)
 	}
 	// 校验通过，写入日志文件
 	_, err := fmt.Fprintf(logFile, "SHA1SUM verified successfully for file: %s\n", gzipFilePath)
 	if err != nil {
+		fmt.Printf("Error writing to log file: %v\n", err)
 		return fmt.Errorf("error writing to log file: %v", err)
 	}
 
