@@ -45,12 +45,12 @@ jobs:
 #          name: downloaded-files
 #          path: |
 #            ./output/*.gz
-#            ./output/*.log
+#            ./*.log
 
       - name: Move files to publish directory
         run: |
           mkdir -p publish
-          mv ./output/*.gz ./output/*.log ./publish/
+          mv ./output/*.gz ./*.log ./publish/
 
       - name: Generate sha256 checksum for all files
         run: |
