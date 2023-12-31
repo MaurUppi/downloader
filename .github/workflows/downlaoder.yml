@@ -52,6 +52,18 @@ jobs:
           mkdir -p publish
           mv ./output/*.gz ./*.log ./publish/
 
+      # 安装 Git LFS
+      - name: Set up Git LFS
+        run: |
+          sudo apt-get install git-lfs
+          git lfs install
+
+      # 跟踪 .gz 文件
+      - name: Track specific .gz files with Git LFS
+        run: |
+          git lfs track "dbip-city-lite*.csv.gz"
+          git add .gitattributes
+
       - name: Generate sha256 checksum for all files
         run: |
           cd ./publish || exit 1
