@@ -41,7 +41,7 @@ func main() {
 	fmt.Printf("ouput dir create : %s\n", outputDir)
 
 	// 打开或创建日志文件，使用 os.O_TRUNC 来覆盖旧内容
-	logFile, err := os.OpenFile(filepath.Join(outputDir, "Downloaded_files.log"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	logFile, err := os.OpenFile(filepath.Join(wd, "Downloaded_files.log"), os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -232,35 +232,41 @@ func parseDownloadInfo(url string) (map[string]string, map[string]string) {
 	fileInfo := make(map[string]string)
 	sha1Info := make(map[string]string)
 
-	types := []string{".mmdb.gz", ".csv.gz"}
-	for _, t := range types {
-		downloadLink := doc.Find(fmt.Sprintf("a[href$='%s']", t)).AttrOr("href", "")
-		fileInfo[t] = downloadLink
+	// CSV 文件处理
+	downloadLinkCSV := doc.Find("a[href$='.csv.gz']").AttrOr("href", "")
+	fileInfo[".csv.gz"] = downloadLinkCSV
+	webSHA1SUMCSV := doc.Find("div.card:contains('CSV')").Find("dt:contains('SHA1SUM') + dd").Text()
+	sha1Info[".csv.gz"] = webSHA1SUMCSV
 
-		// 提取 SHA1SUM
-		webSHA1SUM := doc.Find(fmt.Sprintf("div.card dl:contains('%s')", t)).Find("dt:contains('SHA1SUM') + dd").Text()
-		sha1Info[t] = webSHA1SUM
-	}
+	// MMDB 文件处理
+	downloadLinkMMDB := doc.Find("a[href$='.mmdb.gz']").AttrOr("href", "")
+	fileInfo[".mmdb.gz"] = downloadLinkMMDB
+	webSHA1SUMMMDB := doc.Find("div.card:contains('MMDB')").Find("dt:contains('SHA1SUM') + dd").Text()
+	sha1Info[".mmdb.gz"] = webSHA1SUMMMDB
 
 	return fileInfo, sha1Info
 }
 
 // processAndVerifyFile 解压文件并验证 SHA1SUM
 func processAndVerifyFile(gzipFilePath, expectedSHA1, outputDir string) error {
-	// 构造解压后的文件路径
-	outputPath := filepath.Join(outputDir, strings.TrimSuffix(filepath.Base(gzipFilePath), ".gz"))
-
-	// 解压 .gz 文件
-	if err := decompressGzipFile(gzipFilePath, outputPath); err != nil {
-		return fmt.Errorf("failed to decompress file: %v", err)
+	// 首先检查文件是否以 .gz 结尾
+	if !strings.HasSuffix(gzipFilePath, ".gz") {
+		return fmt.Errorf("file is not a gzip file: %s", gzipFilePath)
 	}
 
-	// 对解压后的文件执行 SHA1SUM 校验
+	outputPath := filepath.Join(outputDir, strings.TrimSuffix(filepath.Base(gzipFilePath), ".gz"))
+
+	// 检查输出文件是否已存在
+	if _, err := os.Stat(outputPath); os.IsNotExist(err) {
+		if err := decompressGzipFile(gzipFilePath, outputPath); err != nil {
+			return fmt.Errorf("failed to decompress file: %v", err)
+		}
+	}
+
+	// 执行 SHA1SUM 校验
 	if verified := verifySHA1(outputPath, expectedSHA1); !verified {
 		return fmt.Errorf("SHA1SUM mismatch for file: %s", outputPath)
 	}
-
-	// 如果需要，此处可以添加日志记录或其他处理
 
 	return nil
 }
