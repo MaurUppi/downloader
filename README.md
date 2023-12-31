@@ -10,10 +10,10 @@ However, DP-IP didn't provide API key for the Free (lite verison) IP geolocation
 
 So, Wrote a Golang program to download it automaticly. 
 
-**dbip-city-lite.mmdb**：
-  - [https://raw.githubusercontent.com/MaurUppi/downloader/release/dbip-city-lite.mmdb](https://raw.githubusercontent.com/MaurUppi/downloader/release/dbip-city-lite.mmdb)
-  - ~~[https://cdn.jsdelivr.net/gh/MaurUppi/downloader@release/dbip-city-lite.mmdb](https://cdn.jsdelivr.net/gh/MaurUppi/downloader@release/dbip-city-lite.mmdb)~~
-    jsdeliver limted File size less than 20 MB.
+## Downloadable assets:
+[![Download DB-IP's file.](https://github.com/MaurUppi/downloader/actions/workflows/downlaoder.yml/badge.svg?branch=main)](https://github.com/MaurUppi/downloader/actions/workflows/downlaoder.yml)
+- [Only on GitHub](https://github.com/MaurUppi/downloader/releases)
+- Not avaliable on jsDelivr due to Package size exceeded the configured limit of 50 MB.
 
 
 ## License
