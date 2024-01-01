@@ -36,12 +36,12 @@ jobs:
         run: echo "CHROME_PATH=${{ steps.setup-chrome.outputs.chrome-path }}" >> $GITHUB_ENV
 
       - name: Download Downloaded_files.log artifact
-        uses: actions/download-artifact@v3
+        uses: dawidd6/action-download-artifact@v3.0.0
         with:
           name: downloaded-files-log
           search_artifacts: true
           check_artifacts: true
-          branch: dev
+          #branch: dev
         continue-on-error: true
 
       #- name: Restore Downloaded_files.log from cache
