@@ -90,9 +90,10 @@ jobs:
           git remote add DP-IP "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
           git push -f -u DP-IP release
 
-      - name: Push LFS files to remote
-        run: |
-          git lfs push --all origin
+      # run once on my scenario. 
+#      - name: Push LFS files to remote
+#        run: |
+#          git lfs push --all origin
             
 #      - name: Purge jsdelivr CDN
 #        run: |
