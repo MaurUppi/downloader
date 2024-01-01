@@ -1,0 +1,118 @@
+name: Download DB-IP's file. 
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 2 * *"
+  push:
+    branches:
+      - dev
+
+jobs:
+  build:
+    name: Downloader
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: ./go.mod
+        
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@latest
+        with:
+          chrome-version: '114'
+        id: setup-chrome
+        
+      - name: Check Chrome Version
+        run: echo "CHROME_PATH=${{ steps.setup-chrome.outputs.chrome-path }}" >> $GITHUB_ENV
+
+      - name: Set variables
+        run: |
+          echo "TAG_NAME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
+          echo "RELEASE_NAME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Build and Run downloader.go
+        run: |
+          go run downloader.go
+
+      - name: Check for no-updates flag
+        id: check-updates
+        run: |
+          if [ -f "no-updates.flag" ]; then
+            echo "No updates found, stopping workflow."
+            echo "::set-output name=skip_remaining_steps::true"
+          else
+            echo "::set-output name=skip_remaining_steps::false"
+          fi
+
+      - name: Upload Downloaded_files.log as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: downloaded-files-log
+          path: ./Downloaded_files.log
+
+  subsequent-job:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download log file artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: downloaded-files-log
+
+      # 以下步骤只有在未发现no-updates.flag文件时才执行
+      - name: Move files to publish directory
+        if: steps.check-updates.outputs.skip_remaining_steps == 'false'
+        run: |
+          mkdir -p publish
+          mv ./output/*.gz ./*.log ./publish/
+
+      - name: Set up Git LFS
+        run: |
+          sudo apt-get install git-lfs
+          git lfs install
+
+      - name: Track specific .gz files with Git LFS
+        run: |
+          git lfs track "dbip-city-lite-*.csv.gz"
+          git add .gitattributes
+
+      - name: Commit .gitattributes
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Track specific .gz files with Git LFS" .gitattributes
+
+      - name: Generate sha256 checksum for all files
+        run: |
+          cd ./publish || exit 1
+          for name in $(ls *.gz); do
+            sha256sum ${name} > ./${name}.sha256sum
+          done
+
+      - name: Git push assets to "release" branch of dev
+        run: |
+          cd publish || exit 1
+          git init
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
+          git lfs track "dbip-city-lite-*.csv.gz" # 重新设置 Git LFS 跟踪
+          git add .gitattributes
+          git commit -m "Configure LFS tracking"
+          git checkout -b dev-release  # 创建并切换到一个专门的release分支
+          git add -A
+          git commit -m "${{ env.RELEASE_NAME }}"
+          git remote add DP-IP "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
+          git push -f -u DP-IP dev-release  # 推送到dev-release分支
+
+      - name: Upload files to GitHub release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file_glob: true
+          file: ./publish/*
+          tag: ${{ env.TAG_NAME }}
