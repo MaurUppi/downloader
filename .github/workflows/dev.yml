@@ -35,14 +35,21 @@ jobs:
       - name: Check Chrome Version
         run: echo "CHROME_PATH=${{ steps.setup-chrome.outputs.chrome-path }}" >> $GITHUB_ENV
 
-      - name: Download Downloaded_files.log artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: downloaded-files-log
-          search_artifacts: true
-          check_artifacts: true
-        #continue-on-error: true
-          
+      #- name: Download Downloaded_files.log artifact
+      #  uses: actions/download-artifact@v2
+      #  with:
+      #    name: downloaded-files-log
+      #    search_artifacts: true
+      #    check_artifacts: true
+       #   branch: dev
+      #  continue-on-error: true
+
+      - name: Restore Downloaded_files.log from cache
+        run: |
+          if [ -f "./output/Downloaded_files.log" ]; then
+            mv ./output/Downloaded_files.log ./
+          fi
+
       - name: Build and Run downloader.go
         run: |
           go run Dev-downloader.go
@@ -107,9 +114,16 @@ jobs:
           file: ./publish/*
           tag: ${{ env.TAG_NAME }}
 
-      - name: Upload Downloaded_files.log as artifact
-        uses: actions/upload-artifact@v2
+      - name: Cache Downloaded_files.log
+        uses: actions/cache@v3
         with:
-          name: downloaded-files-log
-          path: ./publish/Downloaded_files.log
+          path: ./output/Downloaded_files.log # 缓存文件的当前路径
+          key: downloaded-files-${{ hashFiles('./output/Downloaded_files.log') }}
+          restore-keys: downloaded-files-
+          
+      #- name: Upload Downloaded_files.log as artifact
+      #  uses: actions/upload-artifact@v3
+      #  with:
+      #    name: downloaded-files-log
+      #    path: ./publish/Downloaded_files.log
 
