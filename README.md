@@ -48,6 +48,7 @@ The project is configured with GitHub Actions to automatically perform the follo
 - Regularly checks the DB-IP.com website for the latest database files.
 - Automatically downloads, decompresses, and verifies files.
 - Records the operation process and results.
+- Utilizec GitHub LFS to push the File larger than 50M.
 - Running log sample
       <details>
       <summary>Click to expand for details</summary>
