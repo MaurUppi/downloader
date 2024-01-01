@@ -79,11 +79,11 @@ jobs:
         run: |
           cd publish || exit 1
           git init
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
           git lfs track "dbip-city-lite-*.csv.gz" # 重新设置 Git LFS 跟踪
           git add .gitattributes
           git commit -m "Configure LFS tracking"
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
           git checkout -b release
           git add -A
           git commit -m "${{ env.RELEASE_NAME }}"
