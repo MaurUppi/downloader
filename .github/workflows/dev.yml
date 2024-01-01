@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "0 0 2 * *"
-  push:
-    branches:
-      - dev
+  #push:
+  #  branches:
+  #    - dev
       
 jobs:
   build:
@@ -49,13 +49,6 @@ jobs:
           ls -alh ./
           cat ./Downloaded_files.log
 
-      #- name: Restore Downloaded_files.log from cache
-      #  run: |
-      #    if [ -f "./output/Downloaded_files.log" ]; then
-      #      mv ./output/Downloaded_files.log ./
-      #    fi
-      #    ls -alh ./
-
       - name: Build and Run Dev-downloader.go
         run: |
           go run Dev-downloader.go
@@ -73,13 +66,6 @@ jobs:
           mkdir -p publish
           mv ./output/*.gz ./*.log ./publish/
           ls -alh ./publish
-
-      #- name: Cache Downloaded_files.log
-      #  uses: actions/cache@v3
-      #  with:
-      #    path: ./output/Downloaded_files.log # 缓存文件的当前路径
-      #    key: downloaded-files-${{ hashFiles('./output/Downloaded_files.log') }}
-      #    restore-keys: downloaded-files-
 
       - name: Upload Downloaded_files.log as artifact
         uses: actions/upload-artifact@v4
