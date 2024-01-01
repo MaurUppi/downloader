@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"compress/gzip"
 	"context"
 	"crypto/sha1"
@@ -46,6 +47,15 @@ func main() {
 	}
 	defer logFile.Close()
 
+	// 读取日志文件中的SHA1SUM
+	logFilePath := filepath.Join(wd, "Downloaded_files.log")
+	previousSHA1SUMs, err := readSHA1SUMFromLogFile(logFilePath)
+	if err != nil {
+		log.Fatalf("Error reading log file: %v\n", err)
+	}
+
+	allFilesSkipped := true // 用于跟踪是否所有文件都未更新
+
 	// 定义要处理的 URL 列表，解析页面获取下载链接URL、文件名和SHA1SUM
 	urls := []string{
 		"https://db-ip.com/db/download/ip-to-asn-lite",
@@ -80,6 +90,7 @@ func main() {
 
 		// 记录到日志文件
 		for fileType, downloadLink := range fileInfo {
+			fileName := filepath.Base(downloadLink)
 			webSHA1SUM := sha1Info[fileType]
 
 			// 在控制台显示信息
@@ -96,6 +107,15 @@ func main() {
 			if err != nil {
 				log.Fatal("Failed to write to log file:", err)
 			}
+
+			// 检查SHA1SUM是否匹配
+			if previousSHA1SUM, ok := previousSHA1SUMs[fileName]; ok && previousSHA1SUM == webSHA1SUM {
+				fmt.Printf("Skipping download for %s, SHA1SUM matches\n", fileName)
+				continue
+			}
+
+			allFilesSkipped = false // 至少有一个文件需要更新
+
 		}
 		// 为每个 URL 创建一个新的上下文
 		ctx, cancelCtx := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
@@ -120,8 +140,18 @@ func main() {
 				log.Fatalf("Error processing file %s: %v", downloadedFilePath, err)
 			}
 		}
-
 	}
+
+	    // 如果所有文件都未更新，则创建 no-updates.flag 文件
+		if allFilesSkipped {
+			flagFilePath := filepath.Join(wd, "no-updates.flag")
+			flagFile, err := os.Create(flagFilePath)
+			if err != nil {
+				log.Fatalf("Failed to create no-updates flag file: %v", err)
+			}
+			flagFile.Close()
+			fmt.Printf("All files are up-to-date, no-updates.flag file created\n")
+		}
 }
 
 // 下载文件的函数
@@ -211,6 +241,40 @@ func parseDownloadInfo(url string) (map[string]string, map[string]string) {
 	sha1Info[".mmdb.gz"] = webSHA1SUMMMDB
 
 	return fileInfo, sha1Info
+}
+
+func readSHA1SUMFromLogFile(logFilePath string) (map[string]string, error) {
+	sha1sumMap := make(map[string]string)
+
+	file, err := os.Open(logFilePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "DownloadLink: ") {
+			parts := strings.Split(line, "/")
+			fileName := parts[len(parts)-1]
+
+			// 读取接下来的行以获取 SHA1SUM
+			if scanner.Scan() {
+				sha1Line := scanner.Text()
+				if strings.HasPrefix(sha1Line, "webSHA1SUM: ") {
+					sha1sum := strings.TrimPrefix(sha1Line, "webSHA1SUM: ")
+					sha1sumMap[fileName] = sha1sum
+				}
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	return sha1sumMap, nil
 }
 
 // processAndVerifyFile 解压 .gz 文件并验证解压后文件的 SHA1SUM
