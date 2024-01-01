@@ -68,6 +68,13 @@ jobs:
           mv ./output/*.gz ./*.log ./publish/
           ls -alh ./publish
 
+      - name: Cache Downloaded_files.log
+        uses: actions/cache@v3
+        with:
+          path: ./output/Downloaded_files.log # 缓存文件的当前路径
+          key: downloaded-files-${{ hashFiles('./output/Downloaded_files.log') }}
+          restore-keys: downloaded-files-
+          
       - name: Set up Git LFS
         run: |
           sudo apt-get install git-lfs
@@ -114,12 +121,7 @@ jobs:
           file: ./publish/*
           tag: ${{ env.TAG_NAME }}
 
-      - name: Cache Downloaded_files.log
-        uses: actions/cache@v3
-        with:
-          path: ./output/Downloaded_files.log # 缓存文件的当前路径
-          key: downloaded-files-${{ hashFiles('./output/Downloaded_files.log') }}
-          restore-keys: downloaded-files-
+
           
       #- name: Upload Downloaded_files.log as artifact
       #  uses: actions/upload-artifact@v3
