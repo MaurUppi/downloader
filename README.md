@@ -2,8 +2,6 @@
 
 # Downloader for DB-IP.com Databases
 
-## [English README.md](https://github.com/MaurUppi/downloader/edit/main/README.md)
-
 ## Introduction
 This project provides an automated tool specifically for downloading IP geolocation databases from [DB-IP.com](https://db-ip.com). This tool primarily runs automatically through GitHub Actions, ensuring continuous updates and data integrity of the database.
 
