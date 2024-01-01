@@ -169,7 +169,7 @@ The project is configured with GitHub Actions to automatically perform the follo
 ## Downloadable assets:
 [![Download DB-IP's file.](https://github.com/MaurUppi/downloader/actions/workflows/downlaoder.yml/badge.svg?branch=main)](https://github.com/MaurUppi/downloader/actions/workflows/downlaoder.yml)
 - [Currently only available via Github release](https://github.com/MaurUppi/downloader/releases)
-- Unable to provide CDN download due to exceeding jsDelivr's 50M limit for the entire package, unless someone sponsors other CDN storage.
+- Unable to provide CDN download due to exceeding jsDelivr's 50M limit for the entire package, unless someone sponsors alternative CDN storage.
 
 
 ## License
