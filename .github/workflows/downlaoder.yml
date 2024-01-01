@@ -52,18 +52,19 @@ jobs:
           mkdir -p publish
           mv ./output/*.gz ./*.log ./publish/
 
-      # 安装 Git LFS
       - name: Set up Git LFS
         run: |
           sudo apt-get install git-lfs
           git lfs install
-          git lfs push --all origin
 
-      # 跟踪特定的 .gz 文件
       - name: Track specific .gz files with Git LFS
         run: |
           git lfs track "dbip-city-lite-*.csv.gz"
           git add .gitattributes
+
+      - name: Commit .gitattributes
+        run: |
+          git commit -m "Track specific .gz files with Git LFS" .gitattributes
 
       - name: Generate sha256 checksum for all files
         run: |
@@ -76,6 +77,8 @@ jobs:
         run: |
           cd publish || exit 1
           git init
+          git lfs track "dbip-city-lite-*.csv.gz" # 重新设置 Git LFS 跟踪
+          git add .gitattributes
           git config --local user.name "github-actions[bot]"
           git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
           git checkout -b release
@@ -84,6 +87,10 @@ jobs:
           git remote add DP-IP "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
           git push -f -u DP-IP release
 
+      - name: Push LFS files to remote
+        run: |
+          git lfs push --all origin
+            
 #      - name: Purge jsdelivr CDN
 #        run: |
 #          cd publish || exit 1
