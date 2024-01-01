@@ -19,6 +19,12 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: ./go.mod
+
+      - name: Set variables
+        run: |
+          echo "TAG_NAME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
+          echo "RELEASE_NAME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
+        shell: bash
         
       - name: Setup Chrome
         uses: browser-actions/setup-chrome@latest
@@ -29,43 +35,25 @@ jobs:
       - name: Check Chrome Version
         run: echo "CHROME_PATH=${{ steps.setup-chrome.outputs.chrome-path }}" >> $GITHUB_ENV
 
+      - name: Download Downloaded_files.log artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: downloaded-files-log
+          
       - name: Build and Run downloader.go
         run: |
           go run Dev-downloader.go
 
-      - name: Upload Downloaded_files.log as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: downloaded-files-log
-          path: ./Downloaded_files.log
-
-  subsequent-job:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print environment variables
-        run: printenv
-        
-      - name: Download log file artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: downloaded-files-log
-
-      - name: Check for no-updates flag in subsequent job
+      - name: Check for no-updates flag
         run: |
           if [ -f "no-updates.flag" ]; then
             echo "No updates found, skipping subsequent steps."
             exit 0
           fi
 
-      - name: Set variables
-        run: |
-          echo "TAG_NAME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
-          echo "RELEASE_NAME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
-        shell: bash
-        
       - name: Move files to publish directory
         run: |
+          ls -alh ./
           mkdir -p publish
           mv ./output/*.gz ./*.log ./publish/
           ls -alh ./publish
@@ -115,3 +103,10 @@ jobs:
           file_glob: true
           file: ./publish/*
           tag: ${{ env.TAG_NAME }}
+
+      - name: Upload Downloaded_files.log as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: downloaded-files-log
+          path: ./Downloaded_files.log
+
