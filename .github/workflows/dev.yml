@@ -66,27 +66,27 @@ jobs:
 
       # 以下步骤只有在未发现no-updates.flag文件时才执行
       - name: Move files to publish directory
-        if: steps.check-updates.outputs.skip_remaining_steps == 'false'
+        if: env.skip_remaining_steps == 'false'
         run: |
           mkdir -p publish
           mv ./output/*.gz ./*.log ./publish/
           ls -alh ./publish
 
-#      - name: Set up Git LFS
-#        run: |
-#          sudo apt-get install git-lfs
-#          git lfs install
+      - name: Set up Git LFS
+        run: |
+          sudo apt-get install git-lfs
+          git lfs install
 
-#      - name: Track specific .gz files with Git LFS
-#        run: |
-#          git lfs track "dbip-city-lite-*.csv.gz"
-#          git add .gitattributes
+      - name: Track specific .gz files with Git LFS
+        run: |
+          git lfs track "dbip-city-lite-*.csv.gz"
+          git add .gitattributes
 
-#      - name: Commit .gitattributes
-#        run: |
-#          git config --local user.name "github-actions[bot]"
-#          git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
-#          git commit -m "Track specific .gz files with Git LFS" .gitattributes
+      - name: Commit .gitattributes
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Track specific .gz files with Git LFS" .gitattributes
 
       - name: Generate sha256 checksum for all files
         run: |
