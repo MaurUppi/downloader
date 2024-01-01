@@ -113,7 +113,7 @@ func main() {
 				fmt.Printf("Skipping download for %s, SHA1SUM matches\n", fileName)
 				continue
 			}
-
+			fmt.Printf("Updating file: %s, SHA1SUM does not match\n", fileName)
 			allFilesSkipped = false // 至少有一个文件需要更新
 
 		}
@@ -142,16 +142,19 @@ func main() {
 		}
 	}
 
-	    // 如果所有文件都未更新，则创建 no-updates.flag 文件
-		if allFilesSkipped {
-			flagFilePath := filepath.Join(wd, "no-updates.flag")
-			flagFile, err := os.Create(flagFilePath)
-			if err != nil {
-				log.Fatalf("Failed to create no-updates flag file: %v", err)
-			}
-			flagFile.Close()
-			fmt.Printf("All files are up-to-date, no-updates.flag file created\n")
+	// 如果所有文件都未更新，则创建 no-updates.flag 文件
+	if allFilesSkipped {
+		fmt.Printf("No updates found for any files, setting allFilesSkipped to true\n")
+		flagFilePath := filepath.Join(wd, "no-updates.flag")
+		flagFile, err := os.Create(flagFilePath)
+		if err != nil {
+			log.Fatalf("Failed to create no-updates flag file: %v", err)
 		}
+		flagFile.Close()
+		fmt.Printf("All files are up-to-date, no-updates.flag file created\n")
+	} else {
+		fmt.Printf("Some files were updated, allFilesSkipped set to false\n")
+	}
 }
 
 // 下载文件的函数
