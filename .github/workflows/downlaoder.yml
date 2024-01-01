@@ -57,6 +57,7 @@ jobs:
         run: |
           sudo apt-get install git-lfs
           git lfs install
+          git lfs push --all origin
 
       # 跟踪特定的 .gz 文件
       - name: Track specific .gz files with Git LFS
