@@ -126,4 +126,4 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file_glob: true
           file: ./publish/*
-          tag: ${{ env.TAG_NAME }
+          tag: ${{ env.TAG_NAME }}
