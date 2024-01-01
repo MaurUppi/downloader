@@ -57,11 +57,6 @@ jobs:
           sudo apt-get install git-lfs
           git lfs install
 
-      - name: Set Git user
-        run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
-
       - name: Track specific .gz files with Git LFS
         run: |
           git lfs track "dbip-city-lite-*.csv.gz"
@@ -69,6 +64,8 @@ jobs:
 
       - name: Commit .gitattributes
         run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
           git commit -m "Track specific .gz files with Git LFS" .gitattributes
 
       - name: Generate sha256 checksum for all files
@@ -84,6 +81,9 @@ jobs:
           git init
           git lfs track "dbip-city-lite-*.csv.gz" # 重新设置 Git LFS 跟踪
           git add .gitattributes
+          git commit -m "Configure LFS tracking"
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
           git checkout -b release
           git add -A
           git commit -m "${{ env.RELEASE_NAME }}"
