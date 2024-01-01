@@ -71,21 +71,21 @@ jobs:
           mkdir -p publish
           mv ./output/*.gz ./*.log ./publish/
 
-      - name: Set up Git LFS
-        run: |
-          sudo apt-get install git-lfs
-          git lfs install
+#      - name: Set up Git LFS
+#        run: |
+#          sudo apt-get install git-lfs
+#          git lfs install
 
-      - name: Track specific .gz files with Git LFS
-        run: |
-          git lfs track "dbip-city-lite-*.csv.gz"
-          git add .gitattributes
+#      - name: Track specific .gz files with Git LFS
+#        run: |
+#          git lfs track "dbip-city-lite-*.csv.gz"
+#          git add .gitattributes
 
-      - name: Commit .gitattributes
-        run: |
-          git config --local user.name "github-actions[bot]"
-          git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
-          git commit -m "Track specific .gz files with Git LFS" .gitattributes
+#      - name: Commit .gitattributes
+#        run: |
+#          git config --local user.name "github-actions[bot]"
+#          git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
+#          git commit -m "Track specific .gz files with Git LFS" .gitattributes
 
       - name: Generate sha256 checksum for all files
         run: |
@@ -100,9 +100,9 @@ jobs:
           git init
           git config --local user.name "github-actions[bot]"
           git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
-          git lfs track "dbip-city-lite-*.csv.gz" # 重新设置 Git LFS 跟踪
-          git add .gitattributes
-          git commit -m "Configure LFS tracking"
+          #git lfs track "dbip-city-lite-*.csv.gz" # 重新设置 Git LFS 跟踪
+          #git add .gitattributes
+          #git commit -m "Configure LFS tracking"
           git checkout -b dev-release  # 创建并切换到一个专门的release分支
           git add -A
           git commit -m "${{ env.RELEASE_NAME }}"
