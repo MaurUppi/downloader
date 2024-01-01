@@ -7,7 +7,7 @@ on:
   push:
     branches:
       - dev
-
+      
 jobs:
   build:
     name: Downloader
@@ -82,15 +82,15 @@ jobs:
             sha256sum ${name} > ./${name}.sha256sum
           done
 
-      - name: Git push assets to "release" branch of dev
+      - name: Git push assets to "Dev-release" branch of dev
         run: |
           cd publish || exit 1
           git init
           git config --local user.name "github-actions[bot]"
           git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
-          #git lfs track "dbip-city-lite-*.csv.gz" # 重新设置 Git LFS 跟踪
-          #git add .gitattributes
-          #git commit -m "Configure LFS tracking"
+          git lfs track "dbip-city-lite-*.csv.gz" # 重新设置 Git LFS 跟踪
+          git add .gitattributes
+          git commit -m "Configure LFS tracking"
           git checkout -b dev-release  # 创建并切换到一个专门的release分支
           git add -A
           git commit -m "${{ env.RELEASE_NAME }}"
@@ -109,5 +109,5 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: downloaded-files-log
-          path: ./Downloaded_files.log
+          path: ./publish/Downloaded_files.log
 
