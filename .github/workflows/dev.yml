@@ -37,7 +37,7 @@ jobs:
 
       - name: Build and Run downloader.go
         run: |
-          go run downloader.go
+          go run Dev-downloader.go
 
       - name: Check for no-updates flag
         id: check-updates
