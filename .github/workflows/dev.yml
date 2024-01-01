@@ -44,9 +44,9 @@ jobs:
         run: |
           if [ -f "no-updates.flag" ]; then
             echo "No updates found, stopping workflow."
-            echo "::set-output name=skip_remaining_steps::true"
+            echo "skip_remaining_steps=true" >> $GITHUB_ENV
           else
-            echo "::set-output name=skip_remaining_steps::false"
+            echo "skip_remaining_steps=false" >> $GITHUB_ENV
           fi
 
       - name: Upload Downloaded_files.log as artifact
