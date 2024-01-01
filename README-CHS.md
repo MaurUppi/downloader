@@ -50,6 +50,7 @@
 - 定期检查DB-IP.com网站以获取最新数据库文件。
 - 自动下载、解压和校验文件。
 - 日志记录操作过程和结果。
+- 大于50M文件使用GitHub LFS对象。[关于 GitHub 的大小限制](https://docs.github.com/zh/repositories/working-with-files/managing-large-files/about-large-files-on-github#file-size-limits)
 - 运行日志样本
       <details>
       <summary>点击展开查看详情</summary>
