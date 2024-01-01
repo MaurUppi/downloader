@@ -29,25 +29,9 @@ jobs:
       - name: Check Chrome Version
         run: echo "CHROME_PATH=${{ steps.setup-chrome.outputs.chrome-path }}" >> $GITHUB_ENV
 
-      - name: Set variables
-        run: |
-          echo "TAG_NAME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
-          echo "RELEASE_NAME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
-        shell: bash
-
       - name: Build and Run downloader.go
         run: |
           go run Dev-downloader.go
-
-      - name: Check for no-updates flag
-        id: check-updates
-        run: |
-          if [ -f "no-updates.flag" ]; then
-            echo "No updates found, stopping workflow."
-            echo "skip_remaining_steps=true" >> $GITHUB_ENV
-          else
-            echo "skip_remaining_steps=false" >> $GITHUB_ENV
-          fi
 
       - name: Upload Downloaded_files.log as artifact
         uses: actions/upload-artifact@v2
@@ -67,9 +51,20 @@ jobs:
         with:
           name: downloaded-files-log
 
-      # 以下步骤只有在未发现no-updates.flag文件时才执行
+      - name: Check for no-updates flag in subsequent job
+        run: |
+          if [ -f "no-updates.flag" ]; then
+            echo "No updates found, skipping subsequent steps."
+            exit 0
+          fi
+
+      - name: Set variables
+        run: |
+          echo "TAG_NAME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
+          echo "RELEASE_NAME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
+        shell: bash
+        
       - name: Move files to publish directory
-        if: env.skip_remaining_steps == 'false'
         run: |
           mkdir -p publish
           mv ./output/*.gz ./*.log ./publish/
