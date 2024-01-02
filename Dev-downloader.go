@@ -268,6 +268,7 @@ func readSHA1SUMFromLogFile(logFilePath string) (map[string]string, error) {
 				if strings.HasPrefix(sha1Line, "webSHA1SUM: ") {
 					sha1sum := strings.TrimPrefix(sha1Line, "webSHA1SUM: ")
 					sha1sumMap[fileName] = sha1sum
+					fmt.Printf("Extracted from log - File: %s, SHA1SUM: %s\n", fileName, sha1sum)
 				}
 			}
 		}
