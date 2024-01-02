@@ -47,14 +47,20 @@ func main() {
 	}
 	defer logFile.Close()
 
-	// 读取日志文件中的SHA1SUM
-	logFilePath := filepath.Join(wd, "Downloaded_files.log")
-	fmt.Printf("Calling readSHA1SUMFromLogFile with path: %s\n", logFilePath)
-	previousSHA1SUMs, err := readSHA1SUMFromLogFile(logFilePath)
+	// 以只读模式打开flag文件以读取前一次的SHA1SUM值
+	LogFileForCheckUpdatedPath := filepath.Join(wd, "LogFileForCheckUpdated.flag")
+	fmt.Printf("Calling readSHA1SUMFromLogFile with path: %s\n", LogFileForCheckUpdatedPath)
+	FlagFileForRead, err := os.Open(LogFileForCheckUpdatedPath)
 	if err != nil {
-		log.Fatalf("Error reading log file: %v\n", err)
+		log.Fatal(err)
 	}
-	fmt.Printf("Completed reading SHA1SUMs from log file.\n")
+
+	previousSHA1SUMs, err := readSHA1SUMFromLogFile(LogFileForCheckUpdatedPath)
+	if err != nil {
+		log.Fatalf("Error reading flag file: %v\n", err)
+	}
+	fmt.Printf("Completed reading SHA1SUMs from flag file.\n")
+	FlagFileForRead.Close()
 
 	allFilesSkipped := true // 用于跟踪是否所有文件都未更新
 
@@ -249,15 +255,15 @@ func parseDownloadInfo(url string) (map[string]string, map[string]string) {
 	return URLdownloadLink, URLsha1SUM
 }
 
-func readSHA1SUMFromLogFile(logFilePath string) (map[string]string, error) {
+func readSHA1SUMFromLogFile(LogFileForCheckUpdated string) (map[string]string, error) {
 	LOGsha1sumMap := make(map[string]string)
 
-	file, err := os.Open(logFilePath)
+	file, err := os.Open(LogFileForCheckUpdated)
 	if err != nil {
 		return nil, err
 	}
 	// 打印确认消息
-	fmt.Printf("Successfully opened log file: %s\n", logFilePath)
+	fmt.Printf("Successfully opened log file: %s\n", LogFileForCheckUpdated)
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
