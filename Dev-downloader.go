@@ -89,14 +89,13 @@ func main() {
 		URLdownloadLink, URLsha1SUM := parseDownloadInfo(url)
 
 		// 记录到日志文件
-		for fileName, downloadLink := range URLdownloadLink {
-			webSHA1SUM := URLsha1SUM[fileName]
+		for _, downloadLink := range URLdownloadLink {
+			webSHA1SUM := URLsha1SUM[downloadLink]
 
 			// 在控制台显示信息
 			fmt.Printf("URL: %s\n", url)
-			fmt.Printf("File Type: %s\n", fileName)
 			fmt.Printf("Download Link: %s\n", downloadLink)
-			fmt.Printf("SHA1SUM: %s\n", webSHA1SUM)
+			fmt.Printf("webSHA1SUM: %s\n", webSHA1SUM)
 
 			_, err = fmt.Fprintf(logFile, "DownloadLink: %s\n", downloadLink)
 			if err != nil {
@@ -109,14 +108,14 @@ func main() {
 		}
 
 		// 检查SHA1SUM是否匹配
-		for fileName, webSHA1SUM := range URLsha1SUM {
-			if previousSHA1SUM, ok := previousSHA1SUMs[fileName]; ok && previousSHA1SUM == webSHA1SUM {
+		for fileName, downloadLink := range URLdownloadLink {
+			webSHA1SUM := URLsha1SUM[downloadLink]
+			if previousSHA1SUM, ok := previousSHA1SUMs[downloadLink]; ok && previousSHA1SUM == webSHA1SUM {
 				fmt.Printf("Skipping download for %s, SHA1SUM matches\n", fileName)
 				continue
 			}
 			fmt.Printf("Updating file: %s, SHA1SUM does not match\n", fileName)
 			allFilesSkipped = false // 至少有一个文件需要更新
-
 		}
 
 		// 为每个 URL 创建一个新的上下文
@@ -219,40 +218,39 @@ func downloadFile(ctx context.Context, url string, browserPath string, outputDir
 
 // 解析 HTML 并提取两种文件的下载链接和 SHA1SUM
 func parseDownloadInfo(url string) (map[string]string, map[string]string) {
-    resp, err := http.Get(url)
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer resp.Body.Close()
+	resp, err := http.Get(url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
 
-    doc, err := goquery.NewDocumentFromReader(resp.Body)
-    if err != nil {
-        log.Fatal(err)
-    }
+	doc, err := goquery.NewDocumentFromReader(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    URLdownloadLink := make(map[string]string)
-    URLsha1SUM := make(map[string]string)
+	URLdownloadLink := make(map[string]string)
+	URLsha1SUM := make(map[string]string)
 
-    // CSV 文件处理
-    downloadLinkCSV := doc.Find("a[href$='.csv.gz']").AttrOr("href", "")
-    fileNameCSV := filepath.Base(downloadLinkCSV)
-    URLdownloadLink[fileNameCSV] = downloadLinkCSV
-    webSHA1SUMCSV := doc.Find("div.card:contains('CSV')").Find("dt:contains('SHA1SUM') + dd.small").Text()
-    URLsha1SUM[fileNameCSV] = webSHA1SUMCSV
+	// CSV 文件处理
+	downloadLinkCSV := doc.Find("a[href$='.csv.gz']").AttrOr("href", "")
+	fileNameCSV := filepath.Base(downloadLinkCSV)
+	URLdownloadLink[fileNameCSV] = downloadLinkCSV
+	webSHA1SUMCSV := doc.Find("div.card:contains('CSV')").Find("dt:contains('SHA1SUM') + dd.small").Text()
+	URLsha1SUM[fileNameCSV] = webSHA1SUMCSV
 
-    // MMDB 文件处理
-    downloadLinkMMDB := doc.Find("a[href$='.mmdb.gz']").AttrOr("href", "")
-    fileNameMMDB := filepath.Base(downloadLinkMMDB)
-    URLdownloadLink[fileNameMMDB] = downloadLinkMMDB
-    webSHA1SUMMMDB := doc.Find("div.card:contains('MMDB')").Find("dt:contains('SHA1SUM') + dd.small").Text()
-    URLsha1SUM[fileNameMMDB] = webSHA1SUMMMDB
+	// MMDB 文件处理
+	downloadLinkMMDB := doc.Find("a[href$='.mmdb.gz']").AttrOr("href", "")
+	fileNameMMDB := filepath.Base(downloadLinkMMDB)
+	URLdownloadLink[fileNameMMDB] = downloadLinkMMDB
+	webSHA1SUMMMDB := doc.Find("div.card:contains('MMDB')").Find("dt:contains('SHA1SUM') + dd.small").Text()
+	URLsha1SUM[fileNameMMDB] = webSHA1SUMMMDB
 
-    return URLdownloadLink, URLsha1SUM
+	return URLdownloadLink, URLsha1SUM
 }
 
-
 func readSHA1SUMFromLogFile(logFilePath string) (map[string]string, error) {
-	LOGsha1sumMap  := make(map[string]string)
+	LOGsha1sumMap := make(map[string]string)
 
 	file, err := os.Open(logFilePath)
 	if err != nil {
@@ -260,16 +258,16 @@ func readSHA1SUMFromLogFile(logFilePath string) (map[string]string, error) {
 	}
 	defer file.Close()
 
-    scanner := bufio.NewScanner(file)
-    for scanner.Scan() {
-        line := scanner.Text()
-        if strings.HasPrefix(line, "DownloadLink: ") {
-            downloadLink := strings.TrimSpace(strings.TrimPrefix(line, "DownloadLink: "))
-            if scanner.Scan() {
-                sha1Line := scanner.Text()
-                if strings.HasPrefix(sha1Line, "webSHA1SUM: ") {
-                    sha1sum := strings.TrimPrefix(sha1Line, "webSHA1SUM: ")
-                    LOGsha1sumMap[downloadLink] = sha1sum
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "DownloadLink: ") {
+			downloadLink := strings.TrimSpace(strings.TrimPrefix(line, "DownloadLink: "))
+			if scanner.Scan() {
+				sha1Line := scanner.Text()
+				if strings.HasPrefix(sha1Line, "webSHA1SUM: ") {
+					sha1sum := strings.TrimPrefix(sha1Line, "webSHA1SUM: ")
+					LOGsha1sumMap[downloadLink] = sha1sum
 					fmt.Printf("Extracted from log - File: %s, SHA1SUM: %s\n", downloadLink, sha1sum)
 				}
 			}
