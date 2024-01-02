@@ -39,15 +39,13 @@ jobs:
         uses: dawidd6/action-download-artifact@v3.0.0
         with:
           name: downloaded-files-log
-          search_artifacts: true
-          check_artifacts: true
-          #branch: dev
+          #search_artifacts: true
+          #check_artifacts: true
         continue-on-error: true
 
       - name: Copy Downloaded_files.log content to LogFileForCheckUpdated.flag. 
         run: |
-          ls -alh ./
-          cat ./Downloaded_files.log | tee LogFileForCheckUpdated.flag
+          cat ./Downloaded_files.log | tee LogFileForCheckUpdated.flag || exit 1
 
       - name: Build and Run Dev-downloader.go
         run: |
@@ -70,7 +68,6 @@ jobs:
       - name: Move files to publish directory
         if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         run: |
-          ls -alh ./
           mkdir -p publish
           mv ./output/*.gz ./*.log ./publish/
           ls -alh ./publish
@@ -105,7 +102,7 @@ jobs:
       - name: Git push assets to "Dev-release" branch of dev
         if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         run: |
-          cd publish || exit 1
+          cd ./publish || exit 1
           git init
           git config --local user.name "github-actions[bot]"
           git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
