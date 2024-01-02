@@ -89,7 +89,7 @@ func main() {
 		URLdownloadLink, URLsha1SUM := parseDownloadInfo(url)
 
 		// 记录到日志文件
-		for _, downloadLink := range URLdownloadLink {
+		for downloadLink := range URLdownloadLink {
 			webSHA1SUM := URLsha1SUM[downloadLink]
 
 			// 在控制台显示信息
@@ -108,13 +108,13 @@ func main() {
 		}
 
 		// 检查SHA1SUM是否匹配
-		for fileName, downloadLink := range URLdownloadLink {
+		for downloadLink := range URLdownloadLink {
 			webSHA1SUM := URLsha1SUM[downloadLink]
 			if previousSHA1SUM, ok := previousSHA1SUMs[downloadLink]; ok && previousSHA1SUM == webSHA1SUM {
-				fmt.Printf("Skipping download for %s, SHA1SUM matches\n", fileName)
+				fmt.Printf("Skipping download for %s, SHA1SUM matches\n", downloadLink)
 				continue
 			}
-			fmt.Printf("Updating file: %s, SHA1SUM does not match\n", fileName)
+			fmt.Printf("Updating file: %s, SHA1SUM does not match\n", downloadLink)
 			allFilesSkipped = false // 至少有一个文件需要更新
 		}
 
@@ -234,17 +234,15 @@ func parseDownloadInfo(url string) (map[string]string, map[string]string) {
 
 	// CSV 文件处理
 	downloadLinkCSV := doc.Find("a[href$='.csv.gz']").AttrOr("href", "")
-	fileNameCSV := filepath.Base(downloadLinkCSV)
-	URLdownloadLink[fileNameCSV] = downloadLinkCSV
 	webSHA1SUMCSV := doc.Find("div.card:contains('CSV')").Find("dt:contains('SHA1SUM') + dd.small").Text()
-	URLsha1SUM[fileNameCSV] = webSHA1SUMCSV
+	URLdownloadLink[downloadLinkCSV] = downloadLinkCSV
+	URLsha1SUM[downloadLinkCSV] = webSHA1SUMCSV
 
 	// MMDB 文件处理
 	downloadLinkMMDB := doc.Find("a[href$='.mmdb.gz']").AttrOr("href", "")
-	fileNameMMDB := filepath.Base(downloadLinkMMDB)
-	URLdownloadLink[fileNameMMDB] = downloadLinkMMDB
 	webSHA1SUMMMDB := doc.Find("div.card:contains('MMDB')").Find("dt:contains('SHA1SUM') + dd.small").Text()
-	URLsha1SUM[fileNameMMDB] = webSHA1SUMMMDB
+	URLdownloadLink[downloadLinkMMDB] = downloadLinkMMDB
+	URLsha1SUM[downloadLinkMMDB] = webSHA1SUMMMDB
 
 	return URLdownloadLink, URLsha1SUM
 }
