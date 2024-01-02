@@ -276,6 +276,11 @@ func readSHA1SUMFromLogFile(logFilePath string) (map[string]string, error) {
 		return nil, err
 	}
 
+	    // 打印出读取的所有键值对
+	    for k, v := range LOGsha1sumMap {
+		fmt.Printf("Key: %s, Value: %s\n", k, v)
+	    }
+
 	return LOGsha1sumMap, nil
 }
 
