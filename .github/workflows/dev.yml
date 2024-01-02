@@ -3,7 +3,7 @@ name: =Dev=-Download DB-IP's file.
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 2 * *"
+    - cron: '0 1 * * *'
   push:
     branches:
       - dev
