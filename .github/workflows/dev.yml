@@ -123,11 +123,11 @@ jobs:
           git lfs track "dbip-city-lite-*.csv.gz" # 重新设置 Git LFS 跟踪
           git add .gitattributes
           git commit -m "Configure LFS tracking"
-          git checkout -b dev-release  # 创建并切换到一个专门的release分支
+          git checkout -b release
           git add -A
           git commit -m "${{ env.RELEASE_NAME }}"
           git remote add DP-IP "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
-          git push -f -u DP-IP dev-release  # 推送到dev-release分支
+          git push -f -u DP-IP release
 
       - name: Upload files to GitHub release
         if: env.SKIP_SUBSEQUENT_STEPS != 'true'
