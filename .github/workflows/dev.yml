@@ -34,7 +34,7 @@ jobs:
           key: chrome-114
 
       - name: Setup Chrome
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.cache-chrome.outputs.cache-hit != 'true'
         uses: browser-actions/setup-chrome@latest
         with:
           chrome-version: '114'
