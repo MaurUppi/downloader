@@ -49,10 +49,12 @@ func main() {
 
 	// 读取日志文件中的SHA1SUM
 	logFilePath := filepath.Join(wd, "Downloaded_files.log")
+	fmt.Printf("Calling readSHA1SUMFromLogFile with path: %s\n", logFilePath)
 	previousSHA1SUMs, err := readSHA1SUMFromLogFile(logFilePath)
 	if err != nil {
 		log.Fatalf("Error reading log file: %v\n", err)
 	}
+	fmt.Printf("Completed reading SHA1SUMs from log file.\n")
 
 	allFilesSkipped := true // 用于跟踪是否所有文件都未更新
 
