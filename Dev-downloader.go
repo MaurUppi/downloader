@@ -297,11 +297,11 @@ func processAndVerifyFile(gzipFilePath, expectedSHA1, outputDir string, logFile 
 	}
 	// 校验通过，写入日志文件
 	fileName := filepath.Base(gzipFilePath)
-	_, err := fmt.Fprintf(logFile, "%s had been decompressed and SHA1SUM matched with webpage's SHA1SUM value\n", fileName)
-	if err != nil {
-		fmt.Printf("Error writing to log file: %v\n", err)
-		return fmt.Errorf("error writing to log file: %v", err)
-	}
+	///_, err := fmt.Fprintf(logFile, "%s had been decompressed and SHA1SUM matched with webpage's SHA1SUM value\n", fileName)
+	//if err != nil {
+	//	fmt.Printf("Error writing to log file: %v\n", err)
+	//	return fmt.Errorf("error writing to log file: %v", err)
+	//}
 
 	fmt.Printf("%s had been decompressed and SHA1SUM matched with webpage's SHA1SUM value\n", fileName)
 	return nil
