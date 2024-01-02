@@ -96,6 +96,9 @@ func main() {
 		// 先获取下载链接和 SHA1SUM
 		URLdownloadLink, URLsha1SUM := parseDownloadInfo(url)
 
+		// 添加一个标志变量来指示是否需要下载
+		needToDownload := false
+
 		// 记录到日志文件
 		for downloadLink := range URLdownloadLink {
 			webSHA1SUM := URLsha1SUM[downloadLink]
@@ -116,39 +119,43 @@ func main() {
 		}
 
 		// 检查SHA1SUM是否匹配
-		for downloadLink := range URLdownloadLink {
-			webSHA1SUM := URLsha1SUM[downloadLink]
-			if previousSHA1SUM, ok := previousSHA1SUMs[downloadLink]; ok && previousSHA1SUM == webSHA1SUM {
-				fmt.Printf("Skipping download for %s, SHA1SUM matches\n", downloadLink)
-				continue
-			}
-			fmt.Printf("Updating file: %s, SHA1SUM does not match\n", downloadLink)
-			allFilesSkipped = false // 至少有一个文件需要更新
-		}
+        for downloadLink := range URLdownloadLink {
+            webSHA1SUM := URLsha1SUM[downloadLink]
+            if previousSHA1SUM, ok := previousSHA1SUMs[downloadLink]; ok && previousSHA1SUM == webSHA1SUM {
+                fmt.Printf("Skipping download for %s, SHA1SUM matches\n", downloadLink)
+            } else {
+                fmt.Printf("Updating file: %s, SHA1SUM does not match\n", downloadLink)
+                needToDownload = true
+                allFilesSkipped = false // 至少有一个文件需要更新
+            }
+        }
 
-		// 为每个 URL 创建一个新的上下文
-		ctx, cancelCtx := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
-		defer cancelCtx()
-		ctx, cancelCtx = context.WithTimeout(ctx, 60*time.Second)
-		defer cancelCtx()
+        	if needToDownload {
 
-		// 为每个 URL 初始化下载计数器和完成通道
-		done := make(chan bool)
-		downloadCounter := 0
-		totalDownloads := 2 // 每个 URL 预期下载的文件总数
+				// 为每个 URL 创建一个新的上下文
+				ctx, cancelCtx := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
+				defer cancelCtx()
+				ctx, cancelCtx = context.WithTimeout(ctx, 60*time.Second)
+				defer cancelCtx()
 
-		// 运行下载文件的函数，开始下载文件
-		if err := downloadFile(ctx, url, browserPath, outputDir, &downloadCounter, totalDownloads, done); err != nil {
-			log.Fatal(err)
-		}
+				// 为每个 URL 初始化下载计数器和完成通道
+				done := make(chan bool)
+				downloadCounter := 0
+				totalDownloads := 2 // 每个 URL 预期下载的文件总数
 
-		// 处理下载的每个文件
-		for fileType := range URLdownloadLink {
-			downloadedFilePath := filepath.Join(outputDir, filepath.Base(URLdownloadLink[fileType]))
-			if err := processAndVerifyFile(downloadedFilePath, URLsha1SUM[fileType], outputDir, logFile); err != nil {
-				log.Fatalf("Error processing file %s: %v", downloadedFilePath, err)
-			}
-		}
+				// 运行下载文件的函数，开始下载文件
+				if err := downloadFile(ctx, url, browserPath, outputDir, &downloadCounter, totalDownloads, done); err != nil {
+					log.Fatal(err)
+				}
+
+				// 处理下载的每个文件
+				for fileType := range URLdownloadLink {
+					downloadedFilePath := filepath.Join(outputDir, filepath.Base(URLdownloadLink[fileType]))
+					if err := processAndVerifyFile(downloadedFilePath, URLsha1SUM[fileType], outputDir, logFile); err != nil {
+						log.Fatalf("Error processing file %s: %v", downloadedFilePath, err)
+					}
+				}
+			}			
 	}
 
 	// 如果所有文件都未更新，则创建 no-updates.flag 文件
