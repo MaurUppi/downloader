@@ -49,7 +49,7 @@ func main() {
 
 	// 以只读模式打开flag文件以读取前一次的SHA1SUM值
 	LogFileForCheckUpdatedPath := filepath.Join(wd, "LogFileForCheckUpdated.flag")
-	fmt.Printf("Calling readSHA1SUMFromLogFile with path: %s\n", LogFileForCheckUpdatedPath)
+	//fmt.Printf("Calling readSHA1SUMFromLogFile with path: %s\n", LogFileForCheckUpdatedPath)
 	FlagFileForRead, err := os.Open(LogFileForCheckUpdatedPath)
 	if err != nil {
 		log.Fatal(err)
@@ -59,7 +59,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error reading flag file: %v\n", err)
 	}
-	fmt.Printf("Completed reading SHA1SUMs from flag file.\n")
+	fmt.Printf("Completed reading Key & Value from flag file.\n")
 	FlagFileForRead.Close()
 
 	allFilesSkipped := true // 用于跟踪是否所有文件都未更新
@@ -119,43 +119,43 @@ func main() {
 		}
 
 		// 检查SHA1SUM是否匹配
-        for downloadLink := range URLdownloadLink {
-            webSHA1SUM := URLsha1SUM[downloadLink]
-            if previousSHA1SUM, ok := previousSHA1SUMs[downloadLink]; ok && previousSHA1SUM == webSHA1SUM {
-                fmt.Printf("Skipping download for %s, SHA1SUM matches\n", downloadLink)
-            } else {
-                fmt.Printf("Updating file: %s, SHA1SUM does not match\n", downloadLink)
-                needToDownload = true
-                allFilesSkipped = false // 至少有一个文件需要更新
-            }
-        }
+		for downloadLink := range URLdownloadLink {
+			webSHA1SUM := URLsha1SUM[downloadLink]
+			if previousSHA1SUM, ok := previousSHA1SUMs[downloadLink]; ok && previousSHA1SUM == webSHA1SUM {
+				fmt.Printf("Skipping download for %s, SHA1SUM matches\n", downloadLink)
+			} else {
+				fmt.Printf("Updating file: %s, SHA1SUM does not match\n", downloadLink)
+				needToDownload = true
+				allFilesSkipped = false // 至少有一个文件需要更新
+			}
+		}
 
-        	if needToDownload {
+		if needToDownload {
 
-				// 为每个 URL 创建一个新的上下文
-				ctx, cancelCtx := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
-				defer cancelCtx()
-				ctx, cancelCtx = context.WithTimeout(ctx, 60*time.Second)
-				defer cancelCtx()
+			// 为每个 URL 创建一个新的上下文
+			ctx, cancelCtx := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
+			defer cancelCtx()
+			ctx, cancelCtx = context.WithTimeout(ctx, 60*time.Second)
+			defer cancelCtx()
 
-				// 为每个 URL 初始化下载计数器和完成通道
-				done := make(chan bool)
-				downloadCounter := 0
-				totalDownloads := 2 // 每个 URL 预期下载的文件总数
+			// 为每个 URL 初始化下载计数器和完成通道
+			done := make(chan bool)
+			downloadCounter := 0
+			totalDownloads := 2 // 每个 URL 预期下载的文件总数
 
-				// 运行下载文件的函数，开始下载文件
-				if err := downloadFile(ctx, url, browserPath, outputDir, &downloadCounter, totalDownloads, done); err != nil {
-					log.Fatal(err)
+			// 运行下载文件的函数，开始下载文件
+			if err := downloadFile(ctx, url, browserPath, outputDir, &downloadCounter, totalDownloads, done); err != nil {
+				log.Fatal(err)
+			}
+
+			// 处理下载的每个文件
+			for fileType := range URLdownloadLink {
+				downloadedFilePath := filepath.Join(outputDir, filepath.Base(URLdownloadLink[fileType]))
+				if err := processAndVerifyFile(downloadedFilePath, URLsha1SUM[fileType], outputDir, logFile); err != nil {
+					log.Fatalf("Error processing file %s: %v", downloadedFilePath, err)
 				}
-
-				// 处理下载的每个文件
-				for fileType := range URLdownloadLink {
-					downloadedFilePath := filepath.Join(outputDir, filepath.Base(URLdownloadLink[fileType]))
-					if err := processAndVerifyFile(downloadedFilePath, URLsha1SUM[fileType], outputDir, logFile); err != nil {
-						log.Fatalf("Error processing file %s: %v", downloadedFilePath, err)
-					}
-				}
-			}			
+			}
+		}
 	}
 
 	// 如果所有文件都未更新，则创建 no-updates.flag 文件
@@ -270,7 +270,7 @@ func readSHA1SUMFromLogFile(LogFileForCheckUpdated string) (map[string]string, e
 		return nil, err
 	}
 	// 打印确认消息
-	fmt.Printf("Successfully opened log file: %s\n", LogFileForCheckUpdated)
+	fmt.Printf("Successfully opened flag file: %s\n", LogFileForCheckUpdated)
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
@@ -282,29 +282,29 @@ func readSHA1SUMFromLogFile(LogFileForCheckUpdated string) (map[string]string, e
 
 		if strings.HasPrefix(line, "DownloadLink: ") {
 			downloadLink := strings.TrimSpace(strings.TrimPrefix(line, "DownloadLink: "))
-			fmt.Printf("Found DownloadLink: %s\n", downloadLink)
+			//fmt.Printf("Found DownloadLink: %s\n", downloadLink)
 
 			if scanner.Scan() {
 				lineCount++
 				sha1Line := scanner.Text()
-				fmt.Printf("Line %d: %s\n", lineCount, sha1Line)
+				//fmt.Printf("Line %d: %s\n", lineCount, sha1Line)
 
 				if strings.HasPrefix(sha1Line, "webSHA1SUM: ") {
 					sha1sum := strings.TrimPrefix(sha1Line, "webSHA1SUM: ")
 					LOGsha1sumMap[downloadLink] = sha1sum
-					fmt.Printf("Extracted from log - File: %s, SHA1SUM: %s\n", downloadLink, sha1sum)
+					//fmt.Printf("Extracted from log - File: %s, SHA1SUM: %s\n", downloadLink, sha1sum)
 				}
 			}
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		fmt.Printf("Error reading log file: %v\n", err)
+		fmt.Printf("Error reading flag file: %v\n", err)
 		return nil, err
 	}
 
 	// 打印出读取的所有键值对
-	fmt.Printf("Completed reading log file. Total lines read: %d\n", lineCount)
+	fmt.Printf("Completed reading flag file. Total lines read: %d\n", lineCount)
 	for k, v := range LOGsha1sumMap {
 		fmt.Printf("Key: %s, Value: %s\n", k, v)
 	}
