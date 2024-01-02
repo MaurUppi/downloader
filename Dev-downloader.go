@@ -109,12 +109,12 @@ func main() {
 		}
 
 		// 检查SHA1SUM是否匹配
-		for downloadLink, webSHA1SUM := range sha1Info {
-			if previousSHA1SUM, ok := previousSHA1SUMs[downloadLink]; ok && previousSHA1SUM == webSHA1SUM {
-				fmt.Printf("Skipping download for %s, SHA1SUM matches\n", downloadLink)
+		for fileName, webSHA1SUM := range sha1Info {
+			if previousSHA1SUM, ok := previousSHA1SUMs[fileName]; ok && previousSHA1SUM == webSHA1SUM {
+				fmt.Printf("Skipping download for %s, SHA1SUM matches\n", fileName)
 				continue
 			}
-			fmt.Printf("Updating file: %s, SHA1SUM does not match\n", downloadLink)
+			fmt.Printf("Updating file: %s, SHA1SUM does not match\n", fileName)
 			allFilesSkipped = false // 至少有一个文件需要更新
 
 		}
@@ -235,13 +235,15 @@ func parseDownloadInfo(url string) (map[string]string, map[string]string) {
 
 	// CSV 文件处理
 	downloadLinkCSV := doc.Find("a[href$='.csv.gz']").AttrOr("href", "")
-	fileInfo[".csv.gz"] = downloadLinkCSV
+	fileNameCSV := filepath.Base(downloadLinkCSV)
+	fileInfo[fileNameCSV] = downloadLinkCSV
 	webSHA1SUMCSV := doc.Find("div.card:contains('CSV')").Find("dt:contains('SHA1SUM') + dd").Text()
 	sha1Info[".csv.gz"] = webSHA1SUMCSV
 
 	// MMDB 文件处理
 	downloadLinkMMDB := doc.Find("a[href$='.mmdb.gz']").AttrOr("href", "")
-	fileInfo[".mmdb.gz"] = downloadLinkMMDB
+	fileNameMMDB := filepath.Base(downloadLinkMMDB)
+	fileInfo[fileNameMMDB] = downloadLinkMMDB
 	webSHA1SUMMMDB := doc.Find("div.card:contains('MMDB')").Find("dt:contains('SHA1SUM') + dd").Text()
 	sha1Info[".mmdb.gz"] = webSHA1SUMMMDB
 
@@ -261,15 +263,17 @@ func readSHA1SUMFromLogFile(logFilePath string) (map[string]string, error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "DownloadLink: ") {
-			downloadLink := strings.TrimPrefix(line, "DownloadLink: ")
+			// 获取下载链接的文件名部分
+			url := strings.TrimSpace(strings.TrimPrefix(line, "DownloadLink: "))
+			fileName := filepath.Base(url) // 提取 URL 的文件名部分
 
 			// 读取接下来的行以获取 SHA1SUM
 			if scanner.Scan() {
 				sha1Line := scanner.Text()
 				if strings.HasPrefix(sha1Line, "webSHA1SUM: ") {
 					sha1sum := strings.TrimPrefix(sha1Line, "webSHA1SUM: ")
-					sha1sumMap[downloadLink] = sha1sum
-					fmt.Printf("Extracted from log - File: %s, SHA1SUM: %s\n", downloadLink, sha1sum)
+					sha1sumMap[fileName] = sha1sum
+					fmt.Printf("Extracted from log - File: %s, SHA1SUM: %s\n", fileName, sha1sum)
 				}
 			}
 		}
