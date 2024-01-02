@@ -63,10 +63,12 @@ jobs:
         run: |
           if [ -f "no-updates.flag" ]; then
             echo "No updates found, skipping subsequent steps."
+            echo "SKIP_SUBSEQUENT_STEPS=true" >> $GITHUB_ENV
             exit 0
           fi
 
       - name: Move files to publish directory
+        if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         run: |
           ls -alh ./
           mkdir -p publish
@@ -74,22 +76,26 @@ jobs:
           ls -alh ./publish
 
       - name: Set up Git LFS
+        if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         run: |
           sudo apt-get install git-lfs
           git lfs install
 
       - name: Track specific .gz files with Git LFS
+        if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         run: |
           git lfs track "dbip-city-lite-*.csv.gz"
           git add .gitattributes
 
       - name: Commit .gitattributes
+        if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
           git commit -m "Track specific .gz files with Git LFS" .gitattributes
 
       - name: Generate sha256 checksum for all files
+        if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         run: |
           cd ./publish || exit 1
           for name in $(ls *.gz); do
@@ -97,6 +103,7 @@ jobs:
           done
 
       - name: Git push assets to "Dev-release" branch of dev
+        if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         run: |
           cd publish || exit 1
           git init
@@ -112,6 +119,7 @@ jobs:
           git push -f -u DP-IP dev-release  # 推送到dev-release分支
 
       - name: Upload files to GitHub release
+        if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
