@@ -109,14 +109,14 @@ func main() {
 			}
 
 			// 检查SHA1SUM是否匹配
-			if previousSHA1SUM, ok := previousSHA1SUMs[fileName]; ok && previousSHA1SUM == webSHA1SUM {
-				fmt.Printf("Skipping download for %s, SHA1SUM matches\n", fileName)
+			for downloadLink, webSHA1SUM := range sha1Info {
+				if previousSHA1SUM, ok := previousSHA1SUMs[downloadLink]; ok && previousSHA1SUM == webSHA1SUM {
 				continue
-			}
+				}
 			fmt.Printf("Updating file: %s, SHA1SUM does not match\n", fileName)
 			allFilesSkipped = false // 至少有一个文件需要更新
-
-		}
+			}
+			
 		// 为每个 URL 创建一个新的上下文
 		ctx, cancelCtx := chromedp.NewContext(allocCtx, chromedp.WithLogf(log.Printf))
 		defer cancelCtx()
@@ -259,16 +259,15 @@ func readSHA1SUMFromLogFile(logFilePath string) (map[string]string, error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "DownloadLink: ") {
-			parts := strings.Split(line, "/")
-			fileName := parts[len(parts)-1]
+			downloadLink := strings.TrimPrefix(line, "DownloadLink: ")
 
 			// 读取接下来的行以获取 SHA1SUM
 			if scanner.Scan() {
 				sha1Line := scanner.Text()
 				if strings.HasPrefix(sha1Line, "webSHA1SUM: ") {
-					sha1sum := strings.TrimPrefix(sha1Line, "webSHA1SUM: ")
-					sha1sumMap[fileName] = sha1sum
-					fmt.Printf("Extracted from log - File: %s, SHA1SUM: %s\n", fileName, sha1sum)
+                    			sha1sum := strings.TrimPrefix(sha1Line, "webSHA1SUM: ")
+                    			sha1sumMap[downloadLink] = sha1sum
+                    			fmt.Printf("Extracted from log - File: %s, SHA1SUM: %s\n", downloadLink, sha1sum)
 				}
 			}
 		}
