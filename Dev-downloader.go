@@ -254,15 +254,26 @@ func readSHA1SUMFromLogFile(logFilePath string) (map[string]string, error) {
 	if err != nil {
 		return nil, err
 	}
+	// 打印确认消息
+	fmt.Printf("Successfully opened log file: %s\n", logFilePath)
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
+	var lineCount int
 	for scanner.Scan() {
+		lineCount++
 		line := scanner.Text()
+		fmt.Printf("Line %d: %s\n", lineCount, line)
+
 		if strings.HasPrefix(line, "DownloadLink: ") {
 			downloadLink := strings.TrimSpace(strings.TrimPrefix(line, "DownloadLink: "))
+			fmt.Printf("Found DownloadLink: %s\n", downloadLink)
+
 			if scanner.Scan() {
+				lineCount++
 				sha1Line := scanner.Text()
+				fmt.Printf("Line %d: %s\n", lineCount, sha1Line)
+
 				if strings.HasPrefix(sha1Line, "webSHA1SUM: ") {
 					sha1sum := strings.TrimPrefix(sha1Line, "webSHA1SUM: ")
 					LOGsha1sumMap[downloadLink] = sha1sum
@@ -273,13 +284,15 @@ func readSHA1SUMFromLogFile(logFilePath string) (map[string]string, error) {
 	}
 
 	if err := scanner.Err(); err != nil {
+		fmt.Printf("Error reading log file: %v\n", err)
 		return nil, err
 	}
 
-	    // 打印出读取的所有键值对
-	    for k, v := range LOGsha1sumMap {
+	// 打印出读取的所有键值对
+	fmt.Printf("Completed reading log file. Total lines read: %d\n", lineCount)
+	for k, v := range LOGsha1sumMap {
 		fmt.Printf("Key: %s, Value: %s\n", k, v)
-	    }
+	}
 
 	return LOGsha1sumMap, nil
 }
@@ -302,7 +315,7 @@ func processAndVerifyFile(gzipFilePath, expectedSHA1, outputDir string, logFile 
 	}
 	// 校验通过，写入日志文件
 	fileName := filepath.Base(gzipFilePath)
-	///_, err := fmt.Fprintf(logFile, "%s had been decompressed and SHA1SUM matched with webpage's SHA1SUM value\n", fileName)
+	//_, err := fmt.Fprintf(logFile, "%s had been decompressed and SHA1SUM matched with webpage's SHA1SUM value\n", fileName)
 	//if err != nil {
 	//	fmt.Printf("Error writing to log file: %v\n", err)
 	//	return fmt.Errorf("error writing to log file: %v", err)
