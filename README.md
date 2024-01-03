@@ -194,18 +194,18 @@ The project is configured with GitHub Actions to automatically perform the follo
 ## Downloadable assets:
 [![Download DB-IP's file.](https://github.com/MaurUppi/downloader/actions/workflows/downlaoder.yml/badge.svg)](https://github.com/MaurUppi/downloader/actions/workflows/downlaoder.yml)
 - Currently only available via Github release
-  - [dbip-asn-lite.csv.gz](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-asn-lite.csv.gz)
-  - [dbip-asn-lite.csv.gz.sha256sum](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-asn-lite.csv.gz.sha256sum)
-  - [dbip-asn-lite.mmdb.gz](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-asn-lite.mmdb.gz)
-  - [dbip-asn-lite.mmdb.gz.sha256sum](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-asn-lite.mmdb.gz.sha256sum)
-  - [dbip-city-lite.csv.gz](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-city-lite.csv.gz)
-  - [dbip-city-lite.csv.gz.sha256sum](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-city-lite.csv.gz.sha256sum)
-  - [dbip-city-lite.mmdb.gz](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-city-lite.mmdb.gz)
-  - [dbip-city-lite.mmdb.gz.sha256sum](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-city-lite.mmdb.gz.sha256sum)
-  - [dbip-country-lite.csv.gz](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-country-lite.csv.gz)
-  - [dbip-country-lite.csv.gz.sha256sum](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-country-lite.csv.gz.sha256sum)
-  - [dbip-country-lite.mmdb.gz](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-country-lite.mmdb.gz)
-  - [dbip-country-lite.mmdb.gz.sha256sum](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-country-lite.mmdb.gz.sha256sum)
+  - [dbip-asn-lite.csv.gz](https://github.com/MaurUppi/downloader/releases/latest/download/dbip-asn-lite.csv.gz)
+  - [dbip-asn-lite.csv.gz.sha256sum](https://github.com/MaurUppi/downloader/releases/latest/download/dbip-asn-lite.csv.gz.sha256sum)
+  - [dbip-asn-lite.mmdb.gz](https://github.com/MaurUppi/downloader/releases/latest/download/dbip-asn-lite.mmdb.gz)
+  - [dbip-asn-lite.mmdb.gz.sha256sum](https://github.com/MaurUppi/downloader/releases/latest/download/dbip-asn-lite.mmdb.gz.sha256sum)
+  - [dbip-city-lite.csv.gz](https://github.com/MaurUppi/downloader/releases/latest/download/dbip-city-lite.csv.gz)
+  - [dbip-city-lite.csv.gz.sha256sum](https://github.com/MaurUppi/downloader/releases/latest/download/dbip-city-lite.csv.gz.sha256sum)
+  - [dbip-city-lite.mmdb.gz](https://github.com/MaurUppi/downloader/releases/latest/download/dbip-city-lite.mmdb.gz)
+  - [dbip-city-lite.mmdb.gz.sha256sum](https://github.com/MaurUppi/downloader/releases/latest/download/dbip-city-lite.mmdb.gz.sha256sum)
+  - [dbip-country-lite.csv.gz](https://github.com/MaurUppi/downloader/releases/latest/download/dbip-country-lite.csv.gz)
+  - [dbip-country-lite.csv.gz.sha256sum](https://github.com/MaurUppi/downloader/releases/latest/download/dbip-country-lite.csv.gz.sha256sum)
+  - [dbip-country-lite.mmdb.gz](https://github.com/MaurUppi/downloader/releases/latest/download/dbip-country-lite.mmdb.gz)
+  - [dbip-country-lite.mmdb.gz.sha256sum](https://github.com/MaurUppi/downloader/releases/latest/download/dbip-country-lite.mmdb.gz.sha256sum)
 - Unable to provide CDN download due to exceeding jsDelivr's 50M limit for the entire package, unless someone sponsors alternative CDN storage.
 
 
