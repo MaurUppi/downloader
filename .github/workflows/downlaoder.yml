@@ -1,4 +1,4 @@
-name: =Dev=-Download DB-IP's file. 
+name: Download DB-IP's file. 
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     - cron: '0 1 * * *'
   push:
     branches:
-      - dev
+      - main
       
 jobs:
   build:
