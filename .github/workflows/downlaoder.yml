@@ -1,13 +1,13 @@
-name: Download DB-IP's file. 
+name: =Dev=-Download DB-IP's file. 
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 2 * *"
+    - cron: '0 1 * * *'
   push:
     branches:
-      - main
-
+      - dev
+      
 jobs:
   build:
     name: Downloader
@@ -19,65 +19,112 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: ./go.mod
-        
-      - name: Setup Chrome
-        uses: browser-actions/setup-chrome@latest
-        with:
-          chrome-version: '114'
-        id: setup-chrome
-        
-      - name: Check Chrome Version
-        run: echo "CHROME_PATH=${{ steps.setup-chrome.outputs.chrome-path }}" >> $GITHUB_ENV
 
       - name: Set variables
         run: |
           echo "TAG_NAME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
           echo "RELEASE_NAME=$(date +%Y%m%d%H%M)" >> $GITHUB_ENV
         shell: bash
+        
+      - name: Cache Chrome
+        id: cache-chrome
+        uses: actions/cache@v3.3.2
+        with:
+          path: |
+            /opt/hostedtoolcache/chromium/114.0.5735.133/x64
+          key: chrome-114
 
-      - name: Build and Run downloader.go
+      - name: Setup Chrome
+        if: steps.cache-chrome.outputs.cache-hit != 'true'
+        uses: browser-actions/setup-chrome@latest
+        with:
+          chrome-version: '114'
+        id: setup-chrome
+        
+      - name: Check Chrome Version
+        #run: echo "CHROME_PATH=${{ steps.setup-chrome.outputs.chrome-path }}" >> $GITHUB_ENV
+        run: echo "CHROME_PATH=/opt/hostedtoolcache/chromium/114.0.5735.133/x64/chrome" >> $GITHUB_ENV
+
+      - name: Print specific environment variable
         run: |
-          go run downloader.go
+          echo $CHROME_PATH
+          echo $TAG_NAME
+          echo $RELEASE_NAME
+          
+      - name: Download Downloaded_files.log artifact
+        uses: dawidd6/action-download-artifact@v3.0.0
+        with:
+          name: downloaded-files-log
+        continue-on-error: true
 
-#      - name: Upload Artifact
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: downloaded-files
-#          path: |
-#            ./output/*.gz
-#            ./*.log
+      - name: Copy Downloaded_files.log content to LogFileForCheckUpdated.flag. 
+        run: |
+          cat ./Downloaded_files.log | tee LogFileForCheckUpdated.flag || exit 1
+
+      - name: Build and Run Dev-downloader.go
+        run: |
+          go run Dev-downloader.go
+
+      - name: Upload Downloaded_files.log as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: downloaded-files-log
+          path: ./Downloaded_files.log
+          
+      - name: Check for no-updates flag
+        run: |
+          if [ -f "no-updates.flag" ]; then
+            echo "No updates found, skipping subsequent steps."
+            echo "SKIP_SUBSEQUENT_STEPS=true" >> $GITHUB_ENV
+            exit 0
+          fi
 
       - name: Move files to publish directory
+        if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         run: |
           mkdir -p publish
           mv ./output/*.gz ./*.log ./publish/
+          ls -alh ./publish
 
       - name: Set up Git LFS
+        if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         run: |
           sudo apt-get install git-lfs
           git lfs install
 
       - name: Track specific .gz files with Git LFS
+        if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         run: |
           git lfs track "dbip-city-lite-*.csv.gz"
           git add .gitattributes
 
       - name: Commit .gitattributes
+        if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         run: |
           git config --local user.name "github-actions[bot]"
           git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
           git commit -m "Track specific .gz files with Git LFS" .gitattributes
 
-      - name: Generate sha256 checksum for all files
+      - name: Rename & Generate sha256 checksum for all files
+        if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         run: |
           cd ./publish || exit 1
+          for file in dbip-*.csv.gz; do
+              newname=$(echo "$file" | sed -E 's/-[0-9]{4}-[0-9]{2}.csv.gz/.csv.gz/')
+              mv "$file" "$newname"
+          done
+          for file in dbip-*.mmdb.gz; do
+              newname=$(echo "$file" | sed -E 's/-[0-9]{4}-[0-9]{2}.mmdb.gz/.mmdb.gz/')
+              mv "$file" "$newname"
+          done
           for name in $(ls *.gz); do
             sha256sum ${name} > ./${name}.sha256sum
           done
 
-      - name: Git push assets to "release" branch
+      - name: Git push assets to "Dev-release" branch of dev
+        if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         run: |
-          cd publish || exit 1
+          cd ./publish || exit 1
           git init
           git config --local user.name "github-actions[bot]"
           git config --local user.email "47710598+github-actions[bot]@users.noreply.github.com"
@@ -90,22 +137,8 @@ jobs:
           git remote add DP-IP "https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}"
           git push -f -u DP-IP release
 
-      # run once on my scenario. 
-#      - name: Push LFS files to remote
-#        run: |
-#          git lfs push --all origin
-            
-#      - name: Purge jsdelivr CDN
-#        run: |
-#          cd publish || exit 1
-#          for file in $(ls); do
-#            curl -i "https://purge.jsdelivr.net/gh/${{ github.repository }}@release/${file}"
-#          done
-
-#      - name: Remove some files to avoid publishing to GitHub release
-#        run: rm -rf ./publish/*.{gz,zip}
-
       - name: Upload files to GitHub release
+        if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
