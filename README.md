@@ -26,7 +26,6 @@ This project provides an automated tool specifically for downloading IP geolocat
   - After verification, the six `.gz` files are published to the release.
 - **Logging**: All operation steps and results are recorded in a log file for troubleshooting and operational audit.
   - The current log includes `DownloadLink`, `webSHA1SUM`, and `confirmation msg`.
-  - Sample console log info.
     <details>
       <summary>Click to expand for details</summary>
       
@@ -41,12 +40,12 @@ This project provides an automated tool specifically for downloading IP geolocat
 
 - **GitHub Actions Automation**: All the above processes are automatically executed through GitHub Actions, without the need for manual intervention.
   - Detailed `fmt.printf` output to the terminal is provided, and you can observe if interested.
-  - Leveraged `Artifact` feature to store Downloaded_files.log and retrieve when next run.
+  - Leveraged `Artifact` feature by `dawidd6/action-download-artifact@v3.0.0` and `actions/upload-artifact@v4` to store `Downloaded_files.log` and retrieve back when next run.
+  - Leveraged `Cache` by `actions/cache@v3.3.2`, reduced Chrome setup from 15s to around 5s. 
   - To avoid duplicated downloads and save resources, the program is designed to verify the webSHA1SUM value vs. the last successful download file SHA1SUM value before download. If all files match Key & Values, the `no-updates.flag` file will be created and skipped following Action steps. 
-    - sample console log info.
-      <details>
-        <summary>Click to expand for details</summary>
-        
+    <details>
+      <summary>Click to expand for details</summary>
+      
         Successfully opened flag file: /home/runner/work/downloader/downloader/LogFileForCheckUpdated.flag
         Line 1: DownloadLink: https://download.db-ip.com/free/dbip-asn-lite-2024-01.csv.gz
         .....
@@ -67,8 +66,8 @@ This project provides an automated tool specifically for downloading IP geolocat
         ....
         No updates found for any files, setting allFilesSkipped to true
         All files are up-to-date, no-updates.flag file created
-
-      </details>
+      
+    </details>
   - Since the Lite version of the database is updated monthly but not quite confirmed the exact release day is, therefore the Action runs at 1 AM every day `cron: "0 1 * * *"`.
 
 ## GitHub Actions
