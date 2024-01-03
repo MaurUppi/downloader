@@ -8,19 +8,16 @@ This project provides an automated tool specifically for downloading IP geolocat
 ## Background
 
 - The DB-IP Lite free database is a subset of the full database with reduced coverage and accuracy.
-- Based on my search and experience, its way better than MaxMind's `GeoLite2 City` and `GeoLite2 Country` database quality in terms of coverage and accuracy.
+- Based on my search and experience, it's way better than MaxMind's `GeoLite2 City` and `GeoLite2 Country` database quality in terms of coverage and accuracy.
 - Cons is the Lite downloads are updated monthly, way lower than MaxMind's update frequency.
-- However, DP-IP didn't provide API key for the Free (lite verison) IP geolocation database download, means you must visit the webpage and click the checkbox of `I agree with the licensing terms`
-- So, Wrote a Golang program to download it automaticly.
+- However, DP-IP didn't provide an API key for the Free (lite version) IP geolocation database download, which means you must visit the webpage and click the checkbox of `I agree with the licensing terms`
+- So, Wrote a Golang program to download it automatically.
 
 ## Main Features and Operating Process
-- **Automated Download**: The program automatically accesses DB-IP.com to find the latest IP geolocation database files, including:
-  - IP to City Lite CSV format
-  - IP to City Lite MMDB format
-  - IP to Country Lite CSV format
-  - IP to Country Lite MMDB format
-  - IP to ASN CSV format
-  - IP to ASN MMDB format 
+- **Automated Download**: The program automatically accesses DB-IP.com to find the latest IP geolocation database files in both CSV and MMDB formats, including:
+  - [IP to City Lite](https://db-ip.com/db/download/ip-to-city-lite)
+  - [IP to Country Lite](https://db-ip.com/db/download/ip-to-country-lite)
+  - [IP to ASN Lite](https://db-ip.com/db/download/ip-to-asn-lite)
 - **File Decompression and Verification**: The downloaded `.gz` files are automatically decompressed, and the decompressed files undergo SHA1 verification to ensure accuracy and completeness of the downloaded content.
   - Verifies the SHA1SUM values of the decompressed files against the SHA1SUM values provided on the webpage.
   - After verification, the six `.gz` files are published to the release.
@@ -195,8 +192,20 @@ The project is configured with GitHub Actions to automatically perform the follo
 
 
 ## Downloadable assets:
-[![Download DB-IP's file.](https://github.com/MaurUppi/downloader/actions/workflows/downlaoder.yml/badge.svg?branch=main)](https://github.com/MaurUppi/downloader/actions/workflows/downlaoder.yml)
-- [Currently only available via Github release](https://github.com/MaurUppi/downloader/releases)
+[![Download DB-IP's file.](https://github.com/MaurUppi/downloader/actions/workflows/downlaoder.yml/badge.svg)](https://github.com/MaurUppi/downloader/actions/workflows/downlaoder.yml)
+- Currently only available via Github release
+  - [dbip-asn-lite.csv.gz](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-asn-lite.csv.gz)
+  - [dbip-asn-lite.csv.gz.sha256sum](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-asn-lite.csv.gz.sha256sum)
+  - [dbip-asn-lite.mmdb.gz](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-asn-lite.mmdb.gz)
+  - [dbip-asn-lite.mmdb.gz.sha256sum](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-asn-lite.mmdb.gz.sha256sum)
+  - [dbip-city-lite.csv.gz](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-city-lite.csv.gz)
+  - [dbip-city-lite.csv.gz.sha256sum](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-city-lite.csv.gz.sha256sum)
+  - [dbip-city-lite.mmdb.gz](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-city-lite.mmdb.gz)
+  - [dbip-city-lite.mmdb.gz.sha256sum](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-city-lite.mmdb.gz.sha256sum)
+  - [dbip-country-lite.csv.gz](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-country-lite.csv.gz)
+  - [dbip-country-lite.csv.gz.sha256sum](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-country-lite.csv.gz.sha256sum)
+  - [dbip-country-lite.mmdb.gz](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-country-lite.mmdb.gz)
+  - [dbip-country-lite.mmdb.gz.sha256sum](https:github.com/MaurUppi/downloader/releases/latest/download/dbip-country-lite.mmdb.gz.sha256sum)
 - Unable to provide CDN download due to exceeding jsDelivr's 50M limit for the entire package, unless someone sponsors alternative CDN storage.
 
 
