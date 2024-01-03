@@ -26,7 +26,7 @@ This project provides an automated tool specifically for downloading IP geolocat
   - After verification, the six `.gz` files are published to the release.
 - **Logging**: All operation steps and results are recorded in a log file for troubleshooting and operational audit.
   - The current log includes `DownloadLink`, `webSHA1SUM`, and `confirmation msg`.
-  - Sample log information
+  - Sample console log info.
     <details>
       <summary>Click to expand for details</summary>
       
@@ -43,23 +43,16 @@ This project provides an automated tool specifically for downloading IP geolocat
   - Detailed `fmt.printf` output to the terminal is provided, and you can observe if interested.
   - Leveraged `Artifact` feature to store Downloaded_files.log and retrieve when next run.
   - To avoid duplicated downloads and save resources, the program is designed to verify the webSHA1SUM value vs. the last successful download file SHA1SUM value before download. If all files match Key & Values, the `no-updates.flag` file will be created and skipped following Action steps. 
-    - sample console log
+    - sample console log info.
       <details>
         <summary>Click to expand for details</summary>
- 
+        
         Successfully opened flag file: /home/runner/work/downloader/downloader/LogFileForCheckUpdated.flag
         Line 1: DownloadLink: https://download.db-ip.com/free/dbip-asn-lite-2024-01.csv.gz
-        Line 3: DownloadLink: https://download.db-ip.com/free/dbip-asn-lite-2024-01.mmdb.gz
-        Line 5: DownloadLink: https://download.db-ip.com/free/dbip-country-lite-2024-01.csv.gz
-        Line 7: DownloadLink: https://download.db-ip.com/free/dbip-country-lite-2024-01.mmdb.gz
-        Line 9: DownloadLink: https://download.db-ip.com/free/dbip-city-lite-2024-01.csv.gz
-        Line 11: DownloadLink: https://download.db-ip.com/free/dbip-city-lite-2024-01.mmdb.gz
+        .....
         Completed reading flag file. Total lines read: 12
         Key: https://download.db-ip.com/free/dbip-country-lite-2024-01.csv.gz, Value: 8980d8fb4545d2b5b13c817349f7c4c83b8c129f
-        Key: https://download.db-ip.com/free/dbip-country-lite-2024-01.mmdb.gz, Value: b8a3b35be5846e922afae52660a04b31cae57ea8
-        Key: https://download.db-ip.com/free/dbip-city-lite-2024-01.csv.gz, Value: 56687c411276d89467089c79e76ccc372b9e838d
-        Key: https://download.db-ip.com/free/dbip-city-lite-2024-01.mmdb.gz, Value: 4637f51288b8f7b97dd6efe2a242e588d48f9612
-        Key: https://download.db-ip.com/free/dbip-asn-lite-2024-01.csv.gz, Value: d89e06ca1fc7592a69ccba9f22531a13bc9bb53b
+        ....
         Key: https://download.db-ip.com/free/dbip-asn-lite-2024-01.mmdb.gz, Value: d9216b16199f18d8ee31b7f53913b7869178c423
         Completed reading Key & Value from flag file.
         chromedp allocator context created
@@ -71,22 +64,7 @@ This project provides an automated tool specifically for downloading IP geolocat
         webSHA1SUM: d9216b16199f18d8ee31b7f53913b7869178c423
         Skipping download for https://download.db-ip.com/free/dbip-asn-lite-2024-01.csv.gz, SHA1SUM matches
         Skipping download for https://download.db-ip.com/free/dbip-asn-lite-2024-01.mmdb.gz, SHA1SUM matches
-        URL: https://db-ip.com/db/download/ip-to-country-lite
-        Download Link: https://download.db-ip.com/free/dbip-country-lite-2024-01.csv.gz
-        webSHA1SUM: 8980d8fb4545d2b5b13c817349f7c4c83b8c129f
-        URL: https://db-ip.com/db/download/ip-to-country-lite
-        Download Link: https://download.db-ip.com/free/dbip-country-lite-2024-01.mmdb.gz
-        webSHA1SUM: b8a3b35be5846e922afae52660a04b31cae57ea8
-        Skipping download for https://download.db-ip.com/free/dbip-country-lite-2024-01.csv.gz, SHA1SUM matches
-        Skipping download for https://download.db-ip.com/free/dbip-country-lite-2024-01.mmdb.gz, SHA1SUM matches
-        URL: https://db-ip.com/db/download/ip-to-city-lite
-        Download Link: https://download.db-ip.com/free/dbip-city-lite-2024-01.csv.gz
-        webSHA1SUM: 56687c411276d89467089c79e76ccc372b9e838d
-        URL: https://db-ip.com/db/download/ip-to-city-lite
-        Download Link: https://download.db-ip.com/free/dbip-city-lite-2024-01.mmdb.gz
-        webSHA1SUM: 4637f51288b8f7b97dd6efe2a242e588d48f9612
-        Skipping download for https://download.db-ip.com/free/dbip-city-lite-2024-01.mmdb.gz, SHA1SUM matches
-        Skipping download for https://download.db-ip.com/free/dbip-city-lite-2024-01.csv.gz, SHA1SUM matches
+        ....
         No updates found for any files, setting allFilesSkipped to true
         All files are up-to-date, no-updates.flag file created
 
