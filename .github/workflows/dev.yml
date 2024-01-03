@@ -2,11 +2,11 @@ name: =Dev=-Download DB-IP's file.
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 1 * * *'
-  push:
-    branches:
-      - dev
+  #schedule:
+  #  - cron: '0 1 * * *'
+  #push:
+  #  branches:
+  #    - dev
       
 jobs:
   build:
