@@ -61,9 +61,9 @@ jobs:
         run: |
           cat ./Downloaded_files.log | tee LogFileForCheckUpdated.flag || exit 1
 
-      - name: Build and Run Dev-downloader.go
+      - name: Build and Run Ddownloader.go
         run: |
-          go run Dev-downloader.go
+          go run downloader.go
 
       - name: Upload Downloaded_files.log as artifact
         uses: actions/upload-artifact@v4
