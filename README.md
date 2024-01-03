@@ -25,7 +25,7 @@ This project provides an automated tool specifically for downloading IP geolocat
   - Verifies the SHA1SUM values of the decompressed files against the SHA1SUM values provided on the webpage.
   - After verification, the six `.gz` files are published to the release.
 - **Logging**: All operation steps and results are recorded in a log file for troubleshooting and operational audit.
-  - The current log includes `DownloadLink`, `webSHA1SUM`, `confirmation msg`.
+  - The current log includes `DownloadLink`, `webSHA1SUM`, and `confirmation msg`.
   - Sample log information
     <details>
       <summary>Click to expand for details</summary>
@@ -41,14 +41,64 @@ This project provides an automated tool specifically for downloading IP geolocat
 
 - **GitHub Actions Automation**: All the above processes are automatically executed through GitHub Actions, without the need for manual intervention.
   - Detailed `fmt.printf` output to the terminal is provided, and you can observe if interested.
-  - Since the Lite version of the database is updated monthly, the Action runs on the second day of each month at midnight `cron: "0 0 2 * *"`.
+  - Leveraged `Artifact` feature to store Downloaded_files.log and retrieve when next run.
+  - To avoid duplicated downloads and save resources, the program is designed to verify the webSHA1SUM value vs. the last successful download file SHA1SUM value before download. If all files match Key & Values, the `no-updates.flag` file will be created and skipped following Action steps. 
+    - sample console log
+      <details>
+        <summary>Click to expand for details</summary>
+ 
+        Successfully opened flag file: /home/runner/work/downloader/downloader/LogFileForCheckUpdated.flag
+        Line 1: DownloadLink: https://download.db-ip.com/free/dbip-asn-lite-2024-01.csv.gz
+        Line 3: DownloadLink: https://download.db-ip.com/free/dbip-asn-lite-2024-01.mmdb.gz
+        Line 5: DownloadLink: https://download.db-ip.com/free/dbip-country-lite-2024-01.csv.gz
+        Line 7: DownloadLink: https://download.db-ip.com/free/dbip-country-lite-2024-01.mmdb.gz
+        Line 9: DownloadLink: https://download.db-ip.com/free/dbip-city-lite-2024-01.csv.gz
+        Line 11: DownloadLink: https://download.db-ip.com/free/dbip-city-lite-2024-01.mmdb.gz
+        Completed reading flag file. Total lines read: 12
+        Key: https://download.db-ip.com/free/dbip-country-lite-2024-01.csv.gz, Value: 8980d8fb4545d2b5b13c817349f7c4c83b8c129f
+        Key: https://download.db-ip.com/free/dbip-country-lite-2024-01.mmdb.gz, Value: b8a3b35be5846e922afae52660a04b31cae57ea8
+        Key: https://download.db-ip.com/free/dbip-city-lite-2024-01.csv.gz, Value: 56687c411276d89467089c79e76ccc372b9e838d
+        Key: https://download.db-ip.com/free/dbip-city-lite-2024-01.mmdb.gz, Value: 4637f51288b8f7b97dd6efe2a242e588d48f9612
+        Key: https://download.db-ip.com/free/dbip-asn-lite-2024-01.csv.gz, Value: d89e06ca1fc7592a69ccba9f22531a13bc9bb53b
+        Key: https://download.db-ip.com/free/dbip-asn-lite-2024-01.mmdb.gz, Value: d9216b16199f18d8ee31b7f53913b7869178c423
+        Completed reading Key & Value from flag file.
+        chromedp allocator context created
+        URL: https://db-ip.com/db/download/ip-to-asn-lite
+        Download Link: https://download.db-ip.com/free/dbip-asn-lite-2024-01.csv.gz
+        webSHA1SUM: d89e06ca1fc7592a69ccba9f22531a13bc9bb53b
+        URL: https://db-ip.com/db/download/ip-to-asn-lite
+        Download Link: https://download.db-ip.com/free/dbip-asn-lite-2024-01.mmdb.gz
+        webSHA1SUM: d9216b16199f18d8ee31b7f53913b7869178c423
+        Skipping download for https://download.db-ip.com/free/dbip-asn-lite-2024-01.csv.gz, SHA1SUM matches
+        Skipping download for https://download.db-ip.com/free/dbip-asn-lite-2024-01.mmdb.gz, SHA1SUM matches
+        URL: https://db-ip.com/db/download/ip-to-country-lite
+        Download Link: https://download.db-ip.com/free/dbip-country-lite-2024-01.csv.gz
+        webSHA1SUM: 8980d8fb4545d2b5b13c817349f7c4c83b8c129f
+        URL: https://db-ip.com/db/download/ip-to-country-lite
+        Download Link: https://download.db-ip.com/free/dbip-country-lite-2024-01.mmdb.gz
+        webSHA1SUM: b8a3b35be5846e922afae52660a04b31cae57ea8
+        Skipping download for https://download.db-ip.com/free/dbip-country-lite-2024-01.csv.gz, SHA1SUM matches
+        Skipping download for https://download.db-ip.com/free/dbip-country-lite-2024-01.mmdb.gz, SHA1SUM matches
+        URL: https://db-ip.com/db/download/ip-to-city-lite
+        Download Link: https://download.db-ip.com/free/dbip-city-lite-2024-01.csv.gz
+        webSHA1SUM: 56687c411276d89467089c79e76ccc372b9e838d
+        URL: https://db-ip.com/db/download/ip-to-city-lite
+        Download Link: https://download.db-ip.com/free/dbip-city-lite-2024-01.mmdb.gz
+        webSHA1SUM: 4637f51288b8f7b97dd6efe2a242e588d48f9612
+        Skipping download for https://download.db-ip.com/free/dbip-city-lite-2024-01.mmdb.gz, SHA1SUM matches
+        Skipping download for https://download.db-ip.com/free/dbip-city-lite-2024-01.csv.gz, SHA1SUM matches
+        No updates found for any files, setting allFilesSkipped to true
+        All files are up-to-date, no-updates.flag file created
+
+      </details>
+  - Since the Lite version of the database is updated monthly but not quite confirmed the exact release day is, therefore the Action runs at 1 AM every day `cron: "0 1 * * *"`.
 
 ## GitHub Actions
 The project is configured with GitHub Actions to automatically perform the following tasks:
-- Regularly checks the DB-IP.com website for the latest database files.
+- Regularly check the DB-IP.com website for the latest database files.
 - Automatically downloads, decompresses, and verifies files.
 - Records the operation process and results.
-- Utilizec GitHub LFS to push the File larger than 50M. [About size limits on GitHub](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github#about-size-limits-on-github)
+- Utilize GitHub LFS to push the File larger than 50M. [About size limits on GitHub](https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github#about-size-limits-on-github)
 - Running log sample
       <details>
       <summary>Click to expand for details</summary>
