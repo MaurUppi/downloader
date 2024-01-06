@@ -121,7 +121,7 @@ jobs:
             sha256sum ${name} > ./${name}.sha256sum
           done
 
-      - name: Git push assets to "Dev-release" branch of dev
+      - name: Git push assets to "release" branch of dev
         if: env.SKIP_SUBSEQUENT_STEPS != 'true'
         run: |
           cd ./publish || exit 1
