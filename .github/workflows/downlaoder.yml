@@ -1,4 +1,4 @@
-name: Download DB-IP's file. 
+name: Release. 
 
 on:
   workflow_dispatch:
