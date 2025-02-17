@@ -1,6 +1,6 @@
 name: Release. 
 
-on:
+off:
   workflow_dispatch:
   schedule:
     - cron: '0 1 * * *'
